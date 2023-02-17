@@ -1,0 +1,7 @@
+print([None])
+print([1, 2, 3, 4])
+print(([None] * 5))
+print(([0] * 5))
+print(([1, 2, 3] * 5))
+print(([None, 1, 2, 3] * 5))
+print(([None, 1, 2, 3] * -5))
