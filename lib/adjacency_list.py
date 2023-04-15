@@ -7,9 +7,11 @@ class AdjacencyList:
         if n < 0:
             raise ValueError(f"N must be greater than or equal to zero, but received {n}.")
         
+
         self.__n = n
+        self.__edges_counter = 0
         self.__directed = directed
-        self.vertexes = [] # [{Vertex: [Edges]}]
+        self.vertexes = {} # {VertexOne: [EdgesOne], VertexTwo: [EdgesTwo]}
 
         self.__labeled = False if labels is None else True
         self.__weighted = False if weights is None else True
@@ -20,9 +22,7 @@ class AdjacencyList:
         tmp_vertexes = self.create_vertex(n, labels, weights)
 
         for v in tmp_vertexes:
-            self.vertexes.append({list(v.keys())[0]: []})
-
-
+            self.vertexes[v] = []
 
     def add_vertex(self, vertex: (Vertex | tuple[Vertex]),
                    label: (str | int | tuple[str] | tuple[int] | None) = None,
@@ -44,17 +44,20 @@ class AdjacencyList:
                 
         if type(vertex) != tuple:
             v = self.create_vertex(1, ((label,) if self.__labeled else None),
-                                   ((weight,) if self.__weighted else None))[0]
-            self.vertexes.append({list(v.keys())[0]: []})
+                                   ((weight,) if self.__weighted else None))
+            v = list(v.keys())[0]
+            self.vertexes[v] = []
+            self.__n += 1
         else:
             v = self.create_vertex(len(vertex), (label if self.__labeled else None),
                                    (weight if self.__weighted else None))
             for i in v:
-                self.vertexes.append({list(i.keys())[0]: []})
+                self.vertexes[i] = []
+                self.__n += 1
 
 
     def create_vertex(self, n: int, labels: (tuple[str] | tuple[int] | None) = None,
-                      weights: (tuple[float] | None) = None) -> tuple[Vertex]:
+                      weights: (tuple[float] | None) = None) -> dict:
         if labels is not None and len(labels) != n:
             raise IndexError(f"The length for labels ({len(labels)}) must be equal to n ({n}).")
         if weights is not None and len(weights) != n:
@@ -65,8 +68,12 @@ class AdjacencyList:
 
         if labels is None:
             self.__iterable += n
+        
+        res = {}
+        for i in range(n):
+            res[Vertex(n_labels[i], n_weights[i])] = []
 
-        return tuple([{Vertex(n_labels[i], n_weights[i]): []} for i in range(n)])
+        return res
 
     def add_edge(self, v: (Vertex | str | int), w: (Vertex | str | int),
                  label: (str | int | None) = None, weight: (float | None) = None) -> None:
@@ -79,45 +86,50 @@ class AdjacencyList:
             # if graph is not directed
                 # also creates edge from w to v with label and weight
                 
-        v_pos = self.search_vertex(v)
-        w_pos = self.search_vertex(w)
-        
-        if v_pos == -1:
+        if self.search_vertex(v) == -1:
             raise ValueError("Vertex v was not found in the Adjacency List.")
-        if w_pos == -1:
+        if self.search_vertex(w) == -1:
             raise ValueError("Vertex w was not found in the Adjacency List.")
         
-        self.vertexes[v_pos][v].append(Edge(w, label, weight))
+        self.vertexes[v].append(Edge(w, label, weight))
 
         if not self.__directed:
-            self.vertexes[w_pos][w].append(Edge(v, label, weight))
+            self.vertexes[w].append(Edge(v, label, weight))
+
+        self.__edges_counter += 1
 
 
     def search_vertex(self, v: Vertex) -> int:
         res = -1
-        for i, dic in enumerate(self.vertexes):
-            if list(dic.keys())[0] == v:
+        for i, j in enumerate(self.vertexes):
+            if j == v:
                 res = i
                 break
         return res
     
     def print(self) -> None:
         """v -> w1, w2, w3 ..."""
+
         print("Adjacency list vertexes\n")
+        
         for v in self.vertexes:
-            tmp = list(v.keys())[0]
-            print(tmp.to_string(), " -> ", sep="", end="")
-            if len(v[tmp]) > 0:
-                print(v[tmp][0].to.get_label(), sep="", end="")
-                for e in v[tmp][1:]:
+            print(v.to_string(), " -> ", sep="", end="")
+        
+            if len(self.vertexes[v]) > 0:
+                print(self.vertexes[v][0].to.get_label(), sep="", end="")
+        
+                for e in self.vertexes[v][1:]:
                     print(", ", e.to.get_label(), sep="", end="")
             else:
                 print("None", end="")
             print()
+    
+    def empty(self) -> bool:
+        return self.__n == 0
 
 al = AdjacencyList(n=5, weights=(1, 5, 2.1, 10, 15.5))
 
-vs = [list(al.vertexes[0].keys())[0], list(al.vertexes[1].keys())[0]]
+vs = [list(al.vertexes.keys())[0], list(al.vertexes.keys())[1]]
 
 al.add_edge(vs[0], vs[1], "a1", "w1")
 
