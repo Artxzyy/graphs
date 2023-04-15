@@ -11,7 +11,6 @@ class Vertex:
             raise ValueError((f"This vertex '{self.__label}' cannot be updated. The id '{new_label}' already exists."))
         else:
             self.__label = new_label
-
     
-    def to_string(self) -> None:
-        return f"Vertex = (label: '{self.__label}', weight: '{self.weight}')"
+    def to_string(self, verbose: bool = False) -> str:
+        return f"Vertex = (label: '{self.__label}', weight: '{self.weight}')" if verbose else f"{self.__label}"
