@@ -1,5 +1,5 @@
-from vertex.vertex import Vertex
-from edge.edge import Edge
+from .vertex.vertex import Vertex
+from .edge.edge import Edge
 
 class AdjacencyList:
 
@@ -23,36 +23,30 @@ class AdjacencyList:
         for v in tmp_vertexes:
             self.vertexes[v] = []
 
-    def add_vertex(self, vertex: (Vertex | tuple[Vertex]),
-                   label: (str | int | tuple[str] | tuple[int] | None) = None,
-                   weight: (float | tuple[float] | None) = None) -> None:
+    def add_vertex(self, n: int,
+                   label: (tuple[str] | tuple[int] | None) = None,
+                   weight: (tuple[float] | None) = None) -> None:
         """It is supposed that if vertex is a tuple o vertexes, label and weight area also
         tuples with all the same length. If vertex is not a tuple, it is just a Vertex object,
         label is just a string or int or None and weight is just a float or None"""
-
+        if n < 0:
+            raise ValueError(f"N must be greater than or equal to zero, but received {n}.")
+        
         if self.__labeled and self.__weighted:
-            if not (len(vertex) == len(label) == len(weight)):
+            if not (n == len(label) == len(weight)):
                 raise IndexError(f"The length for labels ({len(label)}) and weights ({len(weight)}) \
-                                 must be equal to n ({len(vertex)}).")
+                                 must be equal to {n}.")
         elif self.__labeled:
-            if len(label) != len(vertex):
-                raise IndexError(f"The length for labels ({len(label)}) must be equal to n ({len(vertex)}).")
+            if len(label) != n:
+                raise IndexError(f"The length for labels ({len(label)}) must be equal to {n}.")
         elif self.__weighted:
-            if len(weight) != len(vertex):
-                raise IndexError(f"The length for weights ({len(weight)}) must be equal to n ({len(vertex)}).")
-                
-        if type(vertex) != tuple:
-            v = self.create_vertex(1, ((label,) if self.__labeled else None),
-                                   ((weight,) if self.__weighted else None))
-            v = list(v.keys())[0]
-            self.vertexes[v] = []
-            self.__n += 1
-        else:
-            v = self.create_vertex(len(vertex), (label if self.__labeled else None),
-                                   (weight if self.__weighted else None))
-            for i in v:
-                self.vertexes[i] = []
-                self.__n += 1
+            if len(weight) != n:
+                raise IndexError(f"The length for weights ({len(weight)}) must be equal to {n}.")
+
+        v = self.create_vertex(n, label, weight)
+        for i in v:
+            self.vertexes[i] = []
+            self.__n += 1      
 
     def create_vertex(self, n: int, labels: (tuple[str] | tuple[int] | None) = None,
                       weights: (tuple[float] | None) = None) -> dict:
@@ -75,33 +69,40 @@ class AdjacencyList:
 
     def add_edge(self, v: (Vertex | str | int), w: (Vertex | str | int),
                  label: (str | int | None) = None, weight: (float | None) = None) -> None:
-        # supposing v and w are Vertexes
-
-        # search for v
-        # search for w
-        # if both exist:
-            # create edge from v to w with label and weight
-            # if graph is not directed
-                # also creates edge from w to v with label and weight
-                
-        if self.search_vertex(v) == -1:
-            raise ValueError("Vertex v was not found in the Adjacency List.")
-        if self.search_vertex(w) == -1:
-            raise ValueError("Vertex w was not found in the Adjacency List.")
+        v_pos = self.search_vertex(v)
+        w_pos = self.search_vertex(w)
         
-        self.vertexes[v].append(Edge(w, label, weight))
-
-        if not self.__directed:
-            self.vertexes[w].append(Edge(v, label, weight))
+        if v_pos == -1:
+            raise ValueError("Vertex V was not found in the Adjacency List.")
+        if w_pos == -1:
+            raise ValueError("Vertex W was not found in the Adjacency List.")
+    
+        if type(v) == type(w) == Vertex:        
+            self.vertexes[v].append(Edge(w, label, weight))
+            if not self.__directed:
+                self.vertexes[w].append(Edge(v, label, weight))
+        elif type(v) == type(w) == str or type(v) == type(w) == int:
+            keys = list(self.vertexes.keys())
+            self.vertexes[keys[v_pos]].append(Edge(keys[w_pos], label, weight))
+            if not self.__directed:
+                self.vertexes[keys[w_pos]].append(Edge(keys[v_pos], label, weight))
+        else:
+            raise TypeError(f"V and W must have same types but are {type(v)} and {type(w)}.")
 
         self.__edges_counter += 1
 
-    def search_vertex(self, v: Vertex) -> int:
+    def search_vertex(self, v: (Vertex | str | int)) -> int:
         res = -1
-        for i, j in enumerate(self.vertexes):
-            if j == v:
-                res = i
-                break
+        if type(v) == Vertex:    
+            for i, j in enumerate(self.vertexes):
+                if j == v:
+                    res = i
+                    break
+        else:
+            for i, j in enumerate(self.vertexes):
+                if j.get_label() == v:
+                    res = i
+                    break
         return res
     
     @staticmethod
@@ -114,14 +115,22 @@ class AdjacencyList:
         return res
 
 
-    def search_edge(self, e: Edge) -> tuple:
+    def search_edge(self, e: (Edge | str | int)) -> tuple:
         i = j = -1
-        for c1, v in enumerate(self.vertexes):
-            for c2, ed in enumerate(self.vertexes[v]):
-                if e == ed:
-                    i = c1
-                    j = c2
-                    break
+        if type(e) == Edge:    
+            for c1, v in enumerate(self.vertexes):
+                for c2, ed in enumerate(self.vertexes[v]):
+                    if e == ed:
+                        i = c1
+                        j = c2
+                        break
+        else:
+            for c1, v in enumerate(self.vertexes):
+                for c2, ed in enumerate(self.vertexes[v]):
+                    if e == ed.get_label():
+                        i = c1
+                        j = c2
+                        break
         return (i, j)
 
     def print(self) -> None:
@@ -145,37 +154,40 @@ class AdjacencyList:
         return self.__n == 0
     
     def remove_vertex(self, v: (Vertex | str | int)) -> None:
-        # supposing v is a Vertex
+        v_pos = self.search_vertex(v)
+        if v_pos == -1:
+            raise ValueError("The vertex V was not found in the graph.")
+        
+        if type(v) == Vertex:    
+            self.vertexes.pop(v)
+            
+            # for each key, search for v in its values
+            for iv in self.vertexes:
+                for i, ed in enumerate(self.vertexes[iv]):
+                    if v == ed.to:
+                        self.vertexes[iv].pop(i)
+        else:
+            keys = list(self.vertexes.keys())
+            self.vertexes.pop(keys[v_pos])
 
-        # search for v
-        # if v exists:
-            # remove v
-            # search for v in w E V and remove it in every single one
-        
-        if self.search_vertex(v) == -1:
-            raise ValueError("The vertex v was not found in the graph.")
-
-        self.vertexes.pop(v)
-        
-        # for each key, search for v in its values
-        for iv in self.vertexes:
-            for i, ed in enumerate(self.vertexes[iv]):
-                if v == ed.to:
-                    self.vertexes[iv].pop(i)
-        
+            # for each key, search for v in its values
+            for iv in self.vertexes:
+                for i, ed in enumerate(self.vertexes[iv]):
+                    if v == ed.to.get_label():
+                        self.vertexes[iv].pop(i)
         self.__n -= 1
 
     def remove_edge(self, e: (Edge | str | int)) -> None:
-        # supposing e is an edge
-
-        # search for e
-        # if e exists:
-            # remove e
-            # if graph is not directed
-                # go to w and remove it
-
         pos = self.search_edge(e)
-        w_pos = self.search_vertex(e.to)
+
+        w_pos = tmp = keys = None
+        if type(e) == Edge:
+            w_pos = self.search_vertex(e.to)
+        else:
+            # get edge from edge label and get 'to' attribute
+            keys = list(self.vertexes.keys())
+            tmp = self.search_edge(e)
+            w_pos = self.search_vertex(self.vertexes[keys[tmp[0]]][tmp[1]].to)
         
         if pos[0] == -1:
             raise ValueError("The edge e was not found in the graph.")
@@ -186,41 +198,37 @@ class AdjacencyList:
         self.vertexes[v].pop(pos[1])
 
         if not self.__directed:
-            e_pos = AdjacencyList.__search_edge_by_vertex_label(label=v.get_label(), l=self.vertexes[e.to])
-            if e_pos == -1:
-                raise ValueError("The adjacency is not correctly formed. Something went wrong and we don't know what it is.")
-            self.vertexes[e.to].pop(e_pos)
-        
+            if type(e) == Edge:
+                e_pos = AdjacencyList.__search_edge_by_vertex_label(label=v.get_label(), l=self.vertexes[e.to])
+                if e_pos == -1:
+                    raise ValueError("The adjacency is not correctly formed. Something went wrong and we don't know what it is.")
+                self.vertexes[e.to].pop(e_pos)
+            else:
+                e_pos = AdjacencyList.__search_edge_by_vertex_label(label=v.get_label(), l=self.vertexes[keys[w_pos]])
+                if e_pos == -1:
+                    raise ValueError("The adjacency is not correctly formed. Something went wrong and we don't know what it is.")
+                self.vertexes[keys[w_pos]].pop(e_pos)
         self.__edges_counter -= 1
 
     def is_adjacent(self, v: (Vertex | str | int), w: (Vertex | str | int)) -> bool:
         # it does not matter if it is directed or not
         # if v is in w or w is in v, it is adjacent
-        if self.search_vertex(v) == -1:
-            raise ValueError("Vertex v was not found in the Adjacency List.")
-        if self.search_vertex(w) == -1:
-            raise ValueError("Vertex w was not found in the Adjacency List.")
+        res = None
+
+        v_pos = self.search_vertex(v)
+        w_pos = self.search_vertex(w)
+        if v_pos == -1:
+            raise ValueError("Vertex V was not found in the Adjacency List.")
+        if w_pos == -1:
+            raise ValueError("Vertex W was not found in the Adjacency List.")
         
-        return AdjacencyList.__search_edge_by_vertex_label(label=w.get_label(), l=self.vertexes[v]) != -1\
+        if type(v) == type(w) == Vertex:
+            res = AdjacencyList.__search_edge_by_vertex_label(label=w.get_label(), l=self.vertexes[v]) != -1\
             or AdjacencyList.__search_edge_by_vertex_label(label=v.get_label(), l=self.vertexes[w]) != -1
-
-al = AdjacencyList(n=5, weights=(1, 5, 2.1, 10, 15.5))
-
-vs = [list(al.vertexes.keys())[0], list(al.vertexes.keys())[1]]
-
-al.add_edge(vs[0], vs[1], "a1", "w1")
-
-al.print()
-
-print(al.is_adjacent(vs[0], vs[1]))
-print(al.is_adjacent(vs[1], vs[0]))
-print(al.is_adjacent(vs[0], vs[0]))
-print(al.is_adjacent(vs[1], vs[1]))
-
-al.remove_edge(al.vertexes[vs[0]][0])
-
-print(al.is_adjacent(vs[0], vs[1]))
-
-al.print()
-
-d = {"a": 1, "b": 2}
+        elif type(v) == type(w) == str or type(v) == type(w) == int:
+            keys = list(self.vertexes.keys())
+            res = AdjacencyList.__search_edge_by_vertex_label(label=w, l=self.vertexes[keys[v_pos]]) != -1\
+            or AdjacencyList.__search_edge_by_vertex_label(label=v, l=self.vertexes[keys[w_pos]]) != -1
+        else:
+            raise TypeError(f"V and W must have same types but are {type(v)} and {type(w)}.")
+        return res
