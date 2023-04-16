@@ -4,6 +4,8 @@ class Edge:
         self.__label = label
         self.weight = weight
 
+        self.set_attributes()
+
     def get_label(self) -> (str | int):
         return self.__label
     
@@ -12,3 +14,6 @@ class Edge:
             raise ValueError((f"This vertex '{self.__label}' cannot be updated. The id '{new_label}' already exists."))
         else:
             self.__label = new_label
+
+    def set_attributes(self) -> None:
+        self.label = self.get_label

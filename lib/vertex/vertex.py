@@ -3,6 +3,8 @@ class Vertex:
         self.__label = iterator if label is None else label
         self.weight = weight
 
+        self.set_attributes()
+
     def get_label(self) -> (str | int):
         return self.__label
     
@@ -14,3 +16,6 @@ class Vertex:
     
     def to_string(self, verbose: bool = False) -> str:
         return f"Vertex = (label: '{self.__label}', weight: '{self.weight}')" if verbose else f"{self.__label}"
+    
+    def set_attributes(self) -> None:
+        self.label = self.get_label

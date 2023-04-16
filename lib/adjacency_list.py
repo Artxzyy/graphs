@@ -7,7 +7,6 @@ class AdjacencyList:
         if n < 0:
             raise ValueError(f"N must be greater than or equal to zero, but received {n}.")
         
-
         self.__n = n
         self.__edges_counter = 0
         self.__directed = directed
@@ -55,7 +54,6 @@ class AdjacencyList:
                 self.vertexes[i] = []
                 self.__n += 1
 
-
     def create_vertex(self, n: int, labels: (tuple[str] | tuple[int] | None) = None,
                       weights: (tuple[float] | None) = None) -> dict:
         if labels is not None and len(labels) != n:
@@ -98,7 +96,6 @@ class AdjacencyList:
 
         self.__edges_counter += 1
 
-
     def search_vertex(self, v: Vertex) -> int:
         res = -1
         for i, j in enumerate(self.vertexes):
@@ -107,6 +104,26 @@ class AdjacencyList:
                 break
         return res
     
+    @staticmethod
+    def __search_edge_by_vertex_label(label: (str | int), l: list[Edge]) -> int:
+        res = -1
+        for i, j in enumerate(l):
+            if j.to.get_label() == label:
+                res = i
+                break
+        return res
+
+
+    def search_edge(self, e: Edge) -> tuple:
+        i = j = -1
+        for c1, v in enumerate(self.vertexes):
+            for c2, ed in enumerate(self.vertexes[v]):
+                if e == ed:
+                    i = c1
+                    j = c2
+                    break
+        return (i, j)
+
     def print(self) -> None:
         """v -> w1, w2, w3 ..."""
 
@@ -126,6 +143,66 @@ class AdjacencyList:
     
     def empty(self) -> bool:
         return self.__n == 0
+    
+    def remove_vertex(self, v: (Vertex | str | int)) -> None:
+        # supposing v is a Vertex
+
+        # search for v
+        # if v exists:
+            # remove v
+            # search for v in w E V and remove it in every single one
+        
+        if self.search_vertex(v) == -1:
+            raise ValueError("The vertex v was not found in the graph.")
+
+        self.vertexes.pop(v)
+        
+        # for each key, search for v in its values
+        for iv in self.vertexes:
+            for i, ed in enumerate(self.vertexes[iv]):
+                if v == ed.to:
+                    self.vertexes[iv].pop(i)
+        
+        self.__n -= 1
+
+    def remove_edge(self, e: (Edge | str | int)) -> None:
+        # supposing e is an edge
+
+        # search for e
+        # if e exists:
+            # remove e
+            # if graph is not directed
+                # go to w and remove it
+
+        pos = self.search_edge(e)
+        w_pos = self.search_vertex(e.to)
+        
+        if pos[0] == -1:
+            raise ValueError("The edge e was not found in the graph.")
+        if w_pos == -1:
+            raise ValueError("The adjacency is not correctly formed. Something went wrong and we don't know what it is.")
+        
+        v = list(self.vertexes.keys())[pos[0]]
+        self.vertexes[v].pop(pos[1])
+
+        if not self.__directed:
+            e_pos = AdjacencyList.__search_edge_by_vertex_label(label=v.get_label(), l=self.vertexes[e.to])
+            if e_pos == -1:
+                raise ValueError("The adjacency is not correctly formed. Something went wrong and we don't know what it is.")
+            self.vertexes[e.to].pop(e_pos)
+        
+        self.__edges_counter -= 1
+
+    def is_adjacent(self, v: (Vertex | str | int), w: (Vertex | str | int)) -> bool:
+        # it does not matter if it is directed or not
+        # if v is in w or w is in v, it is adjacent
+        if self.search_vertex(v) == -1:
+            raise ValueError("Vertex v was not found in the Adjacency List.")
+        if self.search_vertex(w) == -1:
+            raise ValueError("Vertex w was not found in the Adjacency List.")
+        
+        return AdjacencyList.__search_edge_by_vertex_label(label=w.get_label(), l=self.vertexes[v]) != -1\
+            or AdjacencyList.__search_edge_by_vertex_label(label=v.get_label(), l=self.vertexes[w]) != -1
 
 al = AdjacencyList(n=5, weights=(1, 5, 2.1, 10, 15.5))
 
@@ -134,3 +211,16 @@ vs = [list(al.vertexes.keys())[0], list(al.vertexes.keys())[1]]
 al.add_edge(vs[0], vs[1], "a1", "w1")
 
 al.print()
+
+print(al.is_adjacent(vs[0], vs[1]))
+print(al.is_adjacent(vs[1], vs[0]))
+print(al.is_adjacent(vs[0], vs[0]))
+print(al.is_adjacent(vs[1], vs[1]))
+
+al.remove_edge(al.vertexes[vs[0]][0])
+
+print(al.is_adjacent(vs[0], vs[1]))
+
+al.print()
+
+d = {"a": 1, "b": 2}
