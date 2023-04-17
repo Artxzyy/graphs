@@ -25,45 +25,94 @@ if __name__ == "__main__":
             if e_weighted:
                 e_weights = tuple([float(i) for i in input(f"{n} Edge weights\n--> ").split(" ")])
 
-            al = AdjacencyList(n=n, labels=v_labels, weights=v_weights)
+            al = AdjacencyList(n=n, labels=v_labels, weights=v_weights, e_labeled=e_labeled, e_weighted=e_weighted)
 
-            action = int(input("Select an option\n\n1 - Add vertex;\n2 - Add edge;\n3 - Remove vertex;\n4 - Remove Edge;\n\
-                               5 - Check adjacency;\n6 - Check if it is empty;\n7 - Print Adjacency List;\n0 - Quit.\n--> "))
+            action = int(input("Select an option\n\n1 - Add vertex;\n2 - Add edge;\n3 - Remove vertex;\n4 - Remove Edge;\n"+
+                               "5 - Check adjacency;\n6 - Check if it is empty;\n7 - Print Adjacency List;\n0 - Quit.\n--> "))
             while action != 0:
                 if action == 1:
+                    # add vertex
+
                     n = int(input("How many new vertexes?\n--> "))
                 
                     labels = weights = None
-                    if v_weighted:
-                        weights = tuple(input(f"{n} Vertex labels\n--> ").split(" "))
-                    if v_labels:
+                    if al.v_weighted():
+                        weights = tuple([float(i) for i in input(f"{n} Vertex weights\n--> ").split(" ")])
+                    if al.v_labeled():
                         labels = tuple(input(f"{n} Vertex labels\n--> ").split(" "))
+
                     al.add_vertex(n, labels, weights)
                 elif action == 2:
-                    v = input("From vertex: ") if v_labeled else int(input("From vertex: "))
-                    w = input("To vertex: ") if v_labeled else int(input("To vertex: "))
+                    # add edge
                     
-                    e_label = e_weight = None
+                    n = int(input("How many new edges?\n--> "))
 
-                    if e_labeled:
-                        e_label = input("Edge label: ")
-                    if e_weighted:
-                        e_weight = input("Edge weight: ")
+                    v = []
+                    w = []
+
+                    for i in range(n):
+                        print(f"Edge {i}\n")
+
+                        tmp_v = tmp_w = None
+                        
+                        if al.v_labeled():
+                            tmp_v = input("From vertex: ")
+                            tmp_w = input("To vertex: ")
+                        else:
+                            tmp_v = int(input("From vertex: "))
+                            tmp_w = int(input("To vertex: "))
+                        
+                        v.append(tmp_v)
+                        w.append(tmp_w)
+
+                    labels = weights = None
                     
-                    al.add_edge(v=v, w=w, label=e_label, weight=e_weight)
+                    if al.e_weighted():
+                        weights = tuple([float(i) for i in input(f"{n} Edge weights\n--> ").split(" ")])
+                    if al.e_labeled():
+                        labels = tuple(input(f"{n} Edge labels\n--> ").split(" "))
+                    
+                    al.add_edge(v=tuple(v), w=tuple(w), label=labels, weight=weights)
                 elif action == 3:
-                    pass
+                    # remove vertex
+
+                    v = None
+                    if al.v_labeled():
+                        v = input("Vertex to remove: ")
+                    else:
+                        v = int(input("Vetex to remove: "))
+                    al.remove_vertex(v)
                 elif action == 4:
-                    pass
+                    # remove edge
+                    
+                    e = None
+                    if al.e_labeled():
+                        e = input("Edge to remove: ")
+                    else:
+                        e = int(input("Edge to remove: "))
+                    al.remove_edge(e)
                 elif action == 5:
-                    v = input("V vertex: ") if v_labeled else int(input("V vertex: "))
-                    w = input("W vertex: ") if v_labeled else int(input("W vertex: "))
+                    # check if v and w are adjacent
+
+                    v = w = None
+                    
+                    if al.v_labeled():
+                        v = input("V vertex: ")
+                        w = input("W vertex: ")
+                    else:
+                        v = int(input("V vertex: "))
+                        w = int(input("W vertex: "))
 
                     print(f"Is '{v}' and '{w}' adjacent? -->", al.is_adjacent(v, w))
+                elif action == 6:
+                    # check if graph is empty
 
+                    print("Is the graph empty (0 vertexes)?", al.empty())
+                elif action == 7:
+                    # print graph
+                    
+                    al.print()
 
-                action = int(input("Select an option\n\n1 - Add vertex;\n2 - Add edge;\n3 - Remove vertex;\n4 - Remove Edge;\n\
-                               5 - Check adjacency;\n6 - Check if it is empty;\n7 - Print Adjacency List;\n0 - Quit.\n--> "))
+                action = int(input("Select an option\n\n1 - Add vertex;\n2 - Add edge;\n3 - Remove vertex;\n4 - Remove Edge;\n"+
+                               "5 - Check adjacency;\n6 - Check if it is empty;\n7 - Print Adjacency List;\n0 - Quit.\n--> "))
             al.print()
-
-

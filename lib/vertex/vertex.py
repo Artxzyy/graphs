@@ -1,9 +1,7 @@
 class Vertex:
     def __init__(self, label: (str | int) = None, weight: float = None, iterator: int = 1) -> None:
         self.__label = iterator if label is None else label
-        self.weight = weight
-
-        self.set_attributes()
+        self.__weight = weight
 
     def get_label(self) -> (str | int):
         return self.__label
@@ -13,9 +11,10 @@ class Vertex:
             raise ValueError((f"This vertex '{self.__label}' cannot be updated. The id '{new_label}' already exists."))
         else:
             self.__label = new_label
+
+    def get_weight(self) -> float:
+        return self.__weight
     
     def to_string(self, verbose: bool = False) -> str:
-        return f"Vertex = (label: '{self.__label}', weight: '{self.weight}')" if verbose else f"{self.__label}"
+        return f"Vertex = (label: '{self.__label}', weight: '{self.__weight}')" if verbose else f"{self.__label}"
     
-    def set_attributes(self) -> None:
-        self.label = self.get_label

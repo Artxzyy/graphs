@@ -2,9 +2,7 @@ class Edge:
     def __init__(self, to, label: (str | int) = None, weight: float = None) -> None:
         self.to = to
         self.__label = label
-        self.weight = weight
-
-        self.set_attributes()
+        self.__weight = weight
 
     def get_label(self) -> (str | int):
         return self.__label
@@ -15,5 +13,6 @@ class Edge:
         else:
             self.__label = new_label
 
-    def set_attributes(self) -> None:
-        self.label = self.get_label
+    def get_weight(self) -> (float):
+        return self.__weight
+    
