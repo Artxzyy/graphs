@@ -16,3 +16,6 @@ class Edge:
     def get_weight(self) -> (float):
         return self.__weight
     
+    def to_string(self, verbose: bool = False) -> str:
+        return f"(to vertex: '{self.to.to_string()}', label: '{self.__label}', weight: '{self.__weight}')" if verbose else f"{self.__label}"
+    

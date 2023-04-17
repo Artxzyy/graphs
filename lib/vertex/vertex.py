@@ -16,5 +16,5 @@ class Vertex:
         return self.__weight
     
     def to_string(self, verbose: bool = False) -> str:
-        return f"Vertex = (label: '{self.__label}', weight: '{self.__weight}')" if verbose else f"{self.__label}"
+        return f"(label: '{self.__label}', weight: '{self.__weight}')" if verbose else f"{self.__label}"
     

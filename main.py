@@ -28,11 +28,11 @@ if __name__ == "__main__":
             al = AdjacencyList(n=n, labels=v_labels, weights=v_weights, e_labeled=e_labeled, e_weighted=e_weighted)
 
             action = int(input("Select an option\n\n1 - Add vertex;\n2 - Add edge;\n3 - Remove vertex;\n4 - Remove Edge;\n"+
-                               "5 - Check adjacency;\n6 - Check if it is empty;\n7 - Print Adjacency List;\n0 - Quit.\n--> "))
+                               "5 - Check adjacency;\n6 - Check if it is empty;\n7 - Check if it is complete (supposing it is simple);\n8 - Print Adjacency List;\n"+
+                               "9 - Check amount of vertexes;\n10 - Check amount of edges.\n0 - Quit.\n--> "))
             while action != 0:
                 if action == 1:
                     # add vertex
-
                     n = int(input("How many new vertexes?\n--> "))
                 
                     labels = weights = None
@@ -44,7 +44,6 @@ if __name__ == "__main__":
                     al.add_vertex(n, labels, weights)
                 elif action == 2:
                     # add edge
-                    
                     n = int(input("How many new edges?\n--> "))
 
                     v = []
@@ -75,7 +74,6 @@ if __name__ == "__main__":
                     al.add_edge(v=tuple(v), w=tuple(w), label=labels, weight=weights)
                 elif action == 3:
                     # remove vertex
-
                     v = None
                     if al.v_labeled():
                         v = input("Vertex to remove: ")
@@ -84,7 +82,6 @@ if __name__ == "__main__":
                     al.remove_vertex(v)
                 elif action == 4:
                     # remove edge
-                    
                     e = None
                     if al.e_labeled():
                         e = input("Edge to remove: ")
@@ -93,7 +90,6 @@ if __name__ == "__main__":
                     al.remove_edge(e)
                 elif action == 5:
                     # check if v and w are adjacent
-
                     v = w = None
                     
                     if al.v_labeled():
@@ -106,12 +102,28 @@ if __name__ == "__main__":
                     print(f"Is '{v}' and '{w}' adjacent? -->", al.is_adjacent(v, w))
                 elif action == 6:
                     # check if graph is empty
-
                     print("Is the graph empty (0 vertexes)?", al.empty())
                 elif action == 7:
+                    # check if graph is complete
+                    print("Is the graph complete?", al.complete())
+                elif action == 8:
                     # print graph
-                    
-                    al.print()
+                    verbose = bool(int(input("Verbose print? (1/0)\n--> ")))
+                    al.print(verbose=verbose)
+                elif action == 9:
+                    # check amount of vertexes in the graph
+                    print(f"This graph has {al.size()} vertexes.")
+                elif action == 10:
+                    # check amount of edges in the graph
+                    print(f"This graph has {al.edges()} edges.")
+                elif action == 11:
+                    # print vertex info by label
+                    v = input("Vertex label: ") if al.v_labeled() else int(input("Vertex label: "))
+                    print(f"Vertex {v}:", al.get_vertex(v))
+                elif action == 12:
+                    # print edge info by label
+                    e = input("Edge label: ") if al.e_labeled() else int(input("Edge label: "))
+                    print(f"Edge {e}:", al.get_edge(e))
 
                 action = int(input("Select an option\n\n1 - Add vertex;\n2 - Add edge;\n3 - Remove vertex;\n4 - Remove Edge;\n"+
                                "5 - Check adjacency;\n6 - Check if it is empty;\n7 - Print Adjacency List;\n0 - Quit.\n--> "))
