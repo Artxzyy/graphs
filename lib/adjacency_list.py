@@ -51,9 +51,9 @@ class AdjacencyList:
     def create_vertex(self, n: int, labels: (tuple[str] | tuple[int] | None) = None,
                       weights: (tuple[float] | None) = None) -> dict:
         if labels is not None and len(labels) != n:
-            raise IndexError(f"The length for labels ({len(labels)}) must be equal to n ({n}).")
+            raise IndexError(f"The length for labels ({len(labels)}) must be equal to {n}.")
         if weights is not None and len(weights) != n:
-            raise IndexError(f"The length for weights ({len(weights)}) must be equal to n ({n}).")
+            raise IndexError(f"The length for weights ({len(weights)}) must be equal to {n}.")
 
         n_labels = tuple([i for i in range(self.__iterable, self.__iterable + n)]) if labels is None else labels
         n_weights = ((None,) * n) if weights is None else weights
@@ -190,7 +190,7 @@ class AdjacencyList:
             w_pos = self.search_vertex(self.vertexes[keys[tmp[0]]][tmp[1]].to)
         
         if pos[0] == -1:
-            raise ValueError("The edge e was not found in the graph.")
+            raise ValueError("The edge E was not found in the graph.")
         if w_pos == -1:
             raise ValueError("The adjacency is not correctly formed. Something went wrong and we don't know what it is.")
         
