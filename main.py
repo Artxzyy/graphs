@@ -1,4 +1,5 @@
-from lib.adjacency_list import AdjacencyList
+from src.lib.general.adjacency_list import AdjacencyList
+from src.lib.general.adjacency_matrix import AdjacencyMatrix
 
 if __name__ == "__main__":
     op = int(input("Options\n\n1 - Create Adjacency List;\n2 - Create Adjacency Matrix;\n0 - Quit.\n--> "))
