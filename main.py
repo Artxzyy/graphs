@@ -1,6 +1,10 @@
 from src.lib.general.adjacency_list import AdjacencyList
 from src.lib.general.adjacency_matrix import AdjacencyMatrix
 
+from src.lib.transductive_inference import TransductiveInference
+
+import pandas as pd
+
 if __name__ == "__main__":
     op = int(input("Options\n\n1 - Create Adjacency List;\n2 - Create Adjacency Matrix;\n0 - Quit.\n--> "))
     if op != 0:
@@ -150,3 +154,13 @@ if __name__ == "__main__":
                                "9 - Check amount of vertexes;\n10 - Check amount of edges;\n11 - Print vertex;\n12 - Print edge;\n"+
                                "13 - Print graph info;\n0 - Quit.\n--> "))
             al.print()
+
+data: pd.Series = pd.read_csv("tests/basic_csv.csv", sep=",").squeeze(axis=0)
+
+print(data)
+print()
+
+ti = TransductiveInference(data)
+
+afm = ti.create_affinity_matrix()
+print(afm)
