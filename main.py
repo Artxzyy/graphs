@@ -7,6 +7,8 @@ import pandas as pd
 import numpy as np
 import math
 
+from sklearn.datasets import make_moons
+
 if __name__ == "__main__":
     op = int(input("Options\n\n1 - Create Adjacency List;\n2 - Create Adjacency Matrix;\n0 - Quit.\n--> "))
     if op != 0:
@@ -227,3 +229,21 @@ print("\n\n 5 \n\n")
 am.remove_vertex(1)
 
 am.print()
+
+print("\n\n-----------\n\n")
+
+data, y = make_moons(500, shuffle=True, noise=0.1, random_state=None)
+
+ti = TransductiveInference(pd.DataFrame(data))
+
+print("\nAffinity Matrix\n")
+
+print(ti.affinity_matrix)
+
+print("\nS {D^(-1/2)WD^(-1/2)}\n")
+
+print(ti.s)
+
+print("\nY",ti.y_input())
+
+ti.fit()
