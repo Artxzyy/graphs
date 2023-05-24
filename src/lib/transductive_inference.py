@@ -1,12 +1,16 @@
-from .general.adjacency_list import AdjacencyList
-from .general.adjacency_matrix import AdjacencyMatrix
+from .graphs_general.adjacency_list import AdjacencyList
+from .graphs_general.adjacency_matrix import AdjacencyMatrix
 
 import pandas as pd
+import math
 
 class TransductiveInference:
     """
     Semi-supervised machine-learning model proposed at
     https://proceedings.neurips.cc/paper_files/paper/2003/file/87682805257e619d49b8e0dfdc14affa-Paper.pdf
+
+    'Learning with Local and Global Consistency'
+    
     """
     
     def __init__(self, pd_data: pd.Series,
@@ -16,24 +20,34 @@ class TransductiveInference:
                         if graph_type == AdjacencyMatrix else self.__adapter.get_adjacency_list())
         self.__affinity_matrix = self.create_affinity_matrix()
 
+        self.__mean = self.__adapter.get_mean()
         self.__std_deviation = self.__adapter.get_std_deviation()
 
     def affinity_mapping(self, xi, xj) -> float:
-        """Probably wrong because I don't know what 'exp' in the article means neither the '||'."""
-        return (( - (abs(xi - xj) ** 2)) / (2 * (self.__adapter.get_std_deviation() ** 2)))
+        """Still yet to get mean and std_deviation for xi and xj instead"""
+        return (1 / (((2 * math.pi * (self.__adapter.get_std_deviation() ** (2)))) ** (1 / 2)))
     
-    def create_affinity_matrix(self):
+    def std(self):
+        return self.__adapter.get_std_deviation()
+    
+    def create_affinity_matrix(self) -> list[list]:
         """Use adapter's x property to create matrix"""
         res = []
         
         x = self.__adapter.get_x()
     
+
+        # change the following to applying the affinity_mapping
+        # as a numpy array an then fill diagonal with zeros
         size = len(x)
         for i in range(size):
             res.append([]) # i-th row
             for j in range(size):
                 res[i].append(self.affinity_mapping(x[i], x[j]) if i != j else 0.0) # j-th column
         return res
+
+    def create_diagonal_matrix(self) -> list[list]:
+        pass
 
 
 class _PandasAdapter:
@@ -55,6 +69,9 @@ class _PandasAdapter:
 
     def get_std_deviation(self) -> float:
         return self.__data.std()
+    
+    def get_mean(self) -> float:
+        return self.__data.mean()
     
     def get_adjacency_matrix(self) -> AdjacencyMatrix:
         """Supposing only vertex weight."""

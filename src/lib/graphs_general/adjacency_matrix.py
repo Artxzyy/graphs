@@ -1,7 +1,10 @@
 from .vertex.vertex import Vertex
 from .edge.edge import Edge
 
+import numpy as np
+
 class AdjacencyMatrix:
+
     """
     Adjacency Matrix for the computational representation of a mathematical graph.
     It can have labels and weights in either edges or vertexes; it can be directed or not;
@@ -79,8 +82,72 @@ class AdjacencyMatrix:
         tmp_vertexes = self.__create_vertex(n, labels, weights)
 
         self.__vertexes = [v for v in tmp_vertexes]
-        self.__matrix = [[None] * n] * n
+        self.__matrix = np.array(([[[None, None]] * n] * n))
 
+    @staticmethod
+    def __copy_to_array_with_other_dimentions(a1: np.ndarray, new_shape: tuple) -> np.ndarray:
+        res = None
+        if len(new_shape) == 2:
+            if a1.shape[0] > new_shape[0] or a1.shape[1] > new_shape[1]:
+                raise IndexError("new_shape must have at least the same dimentions than a1.")
+            shape = tuple([new_shape[0], new_shape[1], 2])
+            res = np.ndarray(shape=shape)
+            res.fill(None)
+
+            for i in range(a1.shape[0]):
+                for j in range(a1.shape[1]):
+                    res[i][j][0] = a1[i][j][0]
+                    res[i][j][1] = a1[i][j][1]
+        elif len(new_shape) == 1:
+            res = []
+            for i in range(len(a1)):
+                res.append(a1[i])
+        else:
+            raise ValueError("new_shape must have 1 or 3 dimentions.")
+        return res
+    
+    @staticmethod
+    def __copy_to_array_without_position(a1: np.ndarray, pos: int) -> np.ndarray:
+        res = np.ndarray(shape=(a1.shape[0] - 1, a1.shape[1] - 1))
+
+        for i in range(a1.shape[0]):
+            if i == pos:
+                continue
+            for j in range(a1.shape[1]):
+                if j == pos:
+                    continue 
+                res[i][j] = a1[i][j]
+        return res
+
+    def print(self, verbose: bool = False) -> None:
+        """
+        Print the Graph in the format 
+        
+        'v1 -> w1, w2, w3.
+         v2 -> w4, w5, w6.'
+        
+        Parameters
+
+        verbose: bool = False
+            boolean that defines if the vertexes will be printed with all information or just the label
+        """
+
+        # for v in self.__vertexes:
+        #     print(v.to_string(verbose=verbose), " -> ", sep="", end="")
+        # 
+        #     if len(self.__vertexes[v]) > 0:
+        #         print(self.__vertexes[v][0].to.to_string(verbose=verbose), sep="", end="")
+        # 
+        #         for e in self.__vertexes[v][1:]:
+        #             print(", ", e.to.to_string(verbose=verbose), sep="", end="")
+        #     else:
+        #         print("None", end="")
+        #     print()
+        print(self.__matrix)
+
+    def get_np_array(self):
+        return self.__matrix
+    
     def add_vertex(self, n: int,
                    label: (tuple[str] | tuple[int] | None) = None,
                    weight: (tuple[float] | None) = None) -> None:
@@ -115,13 +182,12 @@ class AdjacencyMatrix:
         len_v = len(v)
         self.__n += len_v
 
-        for i in self.__matrix:
-            for _ in range(len_v):
-                i.append(None)
+        tmp_matrix = AdjacencyMatrix.__copy_to_array_with_other_dimentions(self.__matrix, (self.__n, self.__n))
 
-        for i in range(len_v):
-            self.__vertexes.append(v[i])
-            self.__matrix.append([None] * self.__n)
+        self.__matrix = tmp_matrix.copy()
+
+        for i in range(self.__n - len_v, self.__n):
+            self.__vertexes.append(v[i - (self.__n - len_v)])
 
     def add_edge(self, v: (tuple[str] | tuple[int]), w: (tuple[str] | tuple[int]),
                  label: ((tuple[str] | tuple[int]) | None) = None, weight: (tuple[float] | None) = None) -> None:
@@ -149,8 +215,8 @@ class AdjacencyMatrix:
         if n != len(w):
             raise IndexError(f"The length of V ({n}) and the length of W ({len(w)}) must be equal.")
 
-        v_pos = []
-        w_pos = []
+        v_pos = np.ndarray(shape=(len(v),))
+        w_pos = np.ndarray(shape=(len(v),))
         for i in range(len(v)):
             tmp1 = self.__search_vertex_position(v[i])
             tmp2 = self.__search_vertex_position(w[i])
@@ -158,8 +224,8 @@ class AdjacencyMatrix:
             if tmp1 == -1 or tmp2 == -1:
                 raise ValueError(f"The vertex {v[i]} was not found in the graph.")
             
-            v_pos.append(tmp1)
-            w_pos.append(tmp2)
+            v_pos[i] = tmp1
+            w_pos[i] = tmp2
         
         if self.__e_labeled and self.__e_weighted:
             if label is not None and weight is not None and (not (n == len(label) == len(weight))):
@@ -180,9 +246,11 @@ class AdjacencyMatrix:
         edges = self.__create_edge(n, w, label, weight)
 
         for i in range(n):
-            self.__matrix[v_pos[i]][w_pos[i]] = edges[i]
+            self.__matrix[int(v_pos[i])][int(w_pos[i])][0] = edges[i][0]
+            self.__matrix[int(v_pos[i])][int(w_pos[i])][1] = edges[i][1]
             if not self.__directed:
-                self.__matrix[w_pos[i]][v_pos[i]] = edges[i]
+                self.__matrix[int(w_pos[i])][int(v_pos[i])][0] = edges[i][0]
+                self.__matrix[int(w_pos[i])][int(v_pos[i])][1] = edges[i][1]
 
         self.__edges_counter += n
     
@@ -200,22 +268,18 @@ class AdjacencyMatrix:
         if v_pos == -1:
             raise ValueError(f"The vertex {v.get_label() if type(v) == Vertex else v} was not found in the graph.")
         
-        v_to_w = w_to_v = 0
-
-        removed = self.__vertexes.pop(v_pos)
-
+        removed = self.__vertexes[v_pos]
         v_to_w = w_to_v = 0
 
         for i in self.__matrix[v_pos]:
             if i is not None:
                 v_to_w += 1
 
-        self.__matrix.pop(v_pos)
-
         for i in self.__matrix:
             if i[v_pos] is not None:
                 w_to_v += 1
-            i.pop(v_pos)
+        
+        self.__matrix = AdjacencyMatrix.__copy_to_array_without_position(self.__matrix, v_pos)
 
         # subtract amount of edges
         self.__edges_counter -= (v_to_w + w_to_v) if self.__directed else v_to_w
@@ -366,17 +430,20 @@ class AdjacencyMatrix:
         if e_pos[0] == -1 or e_pos[1] == -1:
             raise ValueError(f"This edge was not found in the Graph.")
         
-        e: Edge = self.__matrix[e_pos[0]][e_pos[1]]
         if self.__e_labeled:
             if new_label is None:
                 raise ValueError("New label cannot be None.")
             if self.__e_label_exists(new_label):
                 raise ValueError(f"The label '{new_label}' already exists.")
-            e.set_label(new_label)
+            self.__matrix[e_pos[0]][e_pos[1]][0] = new_label
+            if not self.__directed:
+                self.__matrix[e_pos[1]][e_pos[0]][0] = new_label
         if self.__e_weighted:
             if new_weight is None:
                 raise ValueError("New weight cannot be None.")
-            e.set_weight(new_weight)
+            self.__matrix[e_pos[0]][e_pos[1]][1] = new_weight
+            if not self.__directed:
+                self.__matrix[e_pos[1]][e_pos[0]][1] = new_weight
 
     def __create_vertex(self, n: int, labels: (tuple[str] | tuple[int] | None) = None,
                       weights: (tuple[float] | None) = None) -> list:
@@ -440,7 +507,7 @@ class AdjacencyMatrix:
         if labels is None:
             self.__edge_iterable += n
     
-        return tuple([Edge(n_labels[i], n_weights[i]) for i in range(n)])
+        return tuple([np.array([n_labels[i], n_weights[i]]) for i in range(n)])
     
     def __search_vertex_position(self, v: (Vertex | str | int)) -> int:
         """Returns the vertex position in the vertexes list if it exists; -1 if not.
@@ -491,7 +558,7 @@ class AdjacencyMatrix:
             else:
                 for c1, row in enumerate(self.__matrix):
                     for c2, column in enumerate(row):
-                        if e == column.get_label():
+                        if e == column[0]:
                             i = c1
                             j = c2
                             break
@@ -502,9 +569,9 @@ class AdjacencyMatrix:
             w_pos = self.__search_vertex_position(w)
 
             if v_pos == -1:
-                raise ValueError(f"The vertex {v.get_label() if type(v) == Vertex else v} was not found in the graph.")
+                raise ValueError(f"The vertex {v} was not found in the graph.")
             if w_pos == -1:
-                raise ValueError(f"The vertex {w.get_label() if type(w) == Vertex else w} was not found in the graph.")
+                raise ValueError(f"The vertex {w} was not found in the graph.")
         
             i = v_pos
             j = w_pos
@@ -537,7 +604,7 @@ class AdjacencyMatrix:
         res = False
         for i in self.__matrix:
             for j in i:
-                if label == j.get_label():
+                if label == j[0]:
                     res = True
                     break
         return res

@@ -1,9 +1,11 @@
-from src.lib.general.adjacency_list import AdjacencyList
-from src.lib.general.adjacency_matrix import AdjacencyMatrix
+from src.lib.graphs_general.adjacency_list import AdjacencyList
+from src.lib.graphs_general.adjacency_matrix import AdjacencyMatrix
 
 from src.lib.transductive_inference import TransductiveInference
 
 import pandas as pd
+import numpy as np
+import math
 
 if __name__ == "__main__":
     op = int(input("Options\n\n1 - Create Adjacency List;\n2 - Create Adjacency Matrix;\n0 - Quit.\n--> "))
@@ -155,12 +157,61 @@ if __name__ == "__main__":
                                "13 - Print graph info;\n0 - Quit.\n--> "))
             al.print()
 
-data: pd.Series = pd.read_csv("tests/basic_csv.csv", sep=",").squeeze(axis=0)
+# data: pd.Series = pd.read_csv("tests/basic_csv.csv", sep=",").squeeze(axis=0)
+# 
+# print(data)
+# print()
+# 
+# ti = TransductiveInference(data)
+# 
+# afm = ti.create_affinity_matrix()
+# print(afm)
+# 
+# print("\n\n")
+# am = AdjacencyMatrix()
+# 
+# np_array = am.get_np_array()
+# 
+# print(np_array)
+# 
+# np.fill_diagonal(a=np_array, val=0.0)
+# 
+# def m_values(xi, xj):
+#     sigma2 = ti.std() ** 2
+#     den = ((2 * math.pi * sigma2) ** (1/2))
+#     exp_den = 2 * sigma2
+#     exp_total = (((xi - xj) ** 2)) / exp_den
+#     # return (1 / den) * math.exp(-((xi - xj) ** (2)) / (2 * (ti.std() ** (2))))
+#     return (1 / den) * (math.exp( - exp_total))
+# 
+# print(len(np_array[0]))
+# 
+# for i in range(len(np_array[0])):
+#     for j in range(len(np_array[0])):
+#         np_array[i][j] = m_values(np_array[i][i], np_array[j][j])
+# 
+# print(np_array)
 
-print(data)
-print()
+print("\n\n------------------------------------------------------------------------\n\n")
 
-ti = TransductiveInference(data)
+am = AdjacencyMatrix(n=2, directed=True, e_weighted=True)
 
-afm = ti.create_affinity_matrix()
-print(afm)
+am.print()
+
+print("\n\n 1 \n\n")
+
+am.add_vertex(1)
+
+am.print()
+
+print("\n\n 2 \n\n")
+
+am.add_edge((1,), (2,), weight=(5,))
+
+am.print()
+
+print("\n\n 3 \n\n")
+
+am.update_edge(e=1, new_weight=10)
+
+am.print()
