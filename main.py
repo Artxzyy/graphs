@@ -215,3 +215,15 @@ print("\n\n 3 \n\n")
 am.update_edge(e=1, new_weight=10)
 
 am.print()
+
+print("\n\n 4 \n\n")
+
+am.remove_edge(1)
+
+am.print()
+
+print("\n\n 5 \n\n")
+
+am.remove_vertex(1)
+
+am.print()

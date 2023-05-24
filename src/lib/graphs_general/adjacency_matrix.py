@@ -85,7 +85,7 @@ class AdjacencyMatrix:
         self.__matrix = np.array(([[[None, None]] * n] * n))
 
     @staticmethod
-    def __copy_to_array_with_other_dimentions(a1: np.ndarray, new_shape: tuple) -> np.ndarray:
+    def __copy_to_array_with_other_dimentions(a1: np.ndarray, new_shape: tuple) -> (list | np.ndarray):
         res = None
         if len(new_shape) == 2:
             if a1.shape[0] > new_shape[0] or a1.shape[1] > new_shape[1]:
@@ -108,15 +108,17 @@ class AdjacencyMatrix:
     
     @staticmethod
     def __copy_to_array_without_position(a1: np.ndarray, pos: int) -> np.ndarray:
-        res = np.ndarray(shape=(a1.shape[0] - 1, a1.shape[1] - 1))
-
-        for i in range(a1.shape[0]):
+        res = np.ndarray(shape=(a1.shape[0] - 1, a1.shape[1] - 1, 2))
+        res.fill(None)
+        for i in range(res.shape[0]):
             if i == pos:
                 continue
-            for j in range(a1.shape[1]):
-                if j == pos:
-                    continue 
-                res[i][j] = a1[i][j]
+            for j in range(res.shape[1]):
+                tmp_i = i if i < pos else i + 1
+                tmp_j = j if j < pos else j + 1
+                
+                res[i][j][0] = a1[tmp_i][tmp_j][0]
+                res[i][j][1] = a1[tmp_i][tmp_j][1]
         return res
 
     def print(self, verbose: bool = False) -> None:
