@@ -10,7 +10,15 @@ import numpy as np
 import math
 
 class TransductiveInference:
-    
+
+    __color_labels = {
+        0: "red", 1: "green",
+        2: "blue", 3: "orange",
+        4: "purple", 5: "gray",
+        6: "black", 7: "cyan",
+        8: "magenta", 9: "yellow"
+    }
+
     def __init__(self, pd_data: pd.Series,
                  graph_type: (AdjacencyList | AdjacencyMatrix) = AdjacencyMatrix,
                  n_iter: int = 1) -> None:
@@ -22,6 +30,8 @@ class TransductiveInference:
         self.s = self.create_S()
         self.alpha = 0.99
         self.n_iter = n_iter
+
+        self.__result = None
 
     
     def create_affinity_matrix(self):
@@ -45,14 +55,14 @@ class TransductiveInference:
         return np.concatenate(((self.__adapter.y[:, None] == np.arange(1, self.__adapter.n_labeled + 1)).astype(float),
                                np.zeros((self.__adapter.n_not_labeled, self.__adapter.n_labeled))))
 
-    def fit(self):
+    def fit_predict(self):
         y_input = self.y_input()
         
         F = np.dot(self.s, y_input) * self.alpha + (1 - self.alpha) * y_input
-        for _ in range(self.n_iter):
-            F = np.dot(self.s, F) * self.alpha + (1 - self.alpha) * y_input
+        # for _ in range(self.n_iter):
+        #     F = np.dot(self.s, F) * self.alpha + (1 - self.alpha) * y_input
 
-        print("Final F:", F)
+        # print("Final F:", F)
 
         Y_result = np.zeros_like(F)
         # Y_result[np.arange(len(F)), np.argmax(1)] = 1
@@ -66,31 +76,38 @@ class TransductiveInference:
                     max = j
             Y_result[i][0] = max
 
-        print()
-        print("Classification results:", Y_result[0:,0])
+        # print("Classification results:", Y_result[0:,0])
         
-        # Y_v = [1 if x == 0 else 0 for x in Y_result[0:,0]]
         Y_v = [x for x in Y_result[0:,0]]
 
         color = []
         for l in Y_v:
-            if l == 0:
-                color.append('red')
-            elif l == 1:
-                color.append('blue')
-            elif l == 2:
-                color.append('orange')
-            elif l == 3:
-                color.append('purple')
-            else:
-                color.append('black')
+            color.append(TransductiveInference.__color_labels[l])
+
+        self.__result = Y_v.copy()
+        self.__colors = color
+
+        return self.__result
+    
+    def plot(self, title: str = "Title", xlabel: str = "X Label", ylabel: str = "Y Label",
+             save: bool = False, save_name_pdf: str = "plot.pdf"):
+        if self.__result is None:
+            raise ValueError("The model was not trained yet. Call fit_predict() to train the model first.")
         
-        plt.scatter(self.__adapter.x[0:,0], self.__adapter.x[0:,1], color=color)
-        #plt.savefig("iter_1.pdf", format='pdf')
+        plt.title(title)
+
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+
+        plt.scatter(self.__adapter.x[0:,0], self.__adapter.x[0:,1], color=self.__colors)
+        
+        if save:
+            plt.savefig(save_name_pdf, format='pdf')
+        
         plt.show()
 
 class _PandasAdapter:
-    def __init__(self, data: pd.Series, n_labeled_frac: float = (1/125)) -> None:
+    def __init__(self, data: pd.Series, n_labeled_frac: float = (1/250)) -> None:
         if 0.0 >= n_labeled_frac >= 1.0:
             raise ValueError("Train size must in the open interval (0, 1).")
         

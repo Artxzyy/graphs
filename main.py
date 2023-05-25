@@ -194,54 +194,10 @@ if __name__ == "__main__":
 # 
 # print(np_array)
 
-print("\n\n------------------------------------------------------------------------\n\n")
-
 am = AdjacencyMatrix(n=2, directed=True, e_weighted=True)
-
-am.print()
-
-print("\n\n 1 \n\n")
-
-am.add_vertex(1)
-
-am.print()
-
-print("\n\n 2 \n\n")
-
-am.add_edge((1,), (2,), weight=(5,))
-
-am.print()
-
-print("\n\n 3 \n\n")
-
-am.update_edge(e=1, new_weight=10)
-
-am.print()
-
-print("\n\n 4 \n\n")
-
-am.remove_edge(1)
-
-am.print()
-
-print("\n\n 5 \n\n")
-
-am.remove_vertex(1)
-
-am.print()
-
-print("\n\n-----------\n\n")
 
 data, y = make_moons(500, shuffle=True, noise=0.1, random_state=None)
 
 ti = TransductiveInference(pd.DataFrame(data))
-
-print("\nAffinity Matrix\n")
-
-print(ti.affinity_matrix)
-
-print("\nS {D^(-1/2)WD^(-1/2)}\n")
-
-print(ti.s)
-
-ti.fit()
+ti.fit_predict()
+ti.plot()
