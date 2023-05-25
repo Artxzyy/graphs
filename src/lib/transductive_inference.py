@@ -19,22 +19,22 @@ class TransductiveInference:
         8: "magenta", 9: "yellow"
     }
 
-    def __init__(self, pd_data: pd.Series,
-                 graph_type: (AdjacencyList | AdjacencyMatrix) = AdjacencyMatrix,
-                 n_iter: int = 1) -> None:
+    def __init__(self, pd_data: pd.Series, n_iter: int = 1, alpha: float = 0.99) -> None:
         self.__adapter = _PandasAdapter(pd_data)
-        #self.__graph = (self.__adapter.get_adjacency_matrix()
-        #                if graph_type == AdjacencyMatrix else self.__adapter.get_adjacency_list())
-        self.affinity_matrix = self.create_affinity_matrix()
+        
+        if self.__adapter.n_labeled > 10:
+            raise ValueError("Amount of labeled data must lesser than or equal to 10.")
 
-        self.s = self.create_S()
-        self.alpha = 0.99
-        self.n_iter = n_iter
+        self.__affinity_matrix = self.__create_affinity_matrix()
+        
+        self.__s = self.__create_S()
+        self.__alpha = alpha
+        self.__n_iter = n_iter
 
         self.__result = None
 
     
-    def create_affinity_matrix(self):
+    def __create_affinity_matrix(self):
         dm = cdist(self.__adapter.x, self.__adapter.x, 'euclidean')
         
         rbf = lambda x, std: math.exp((-x) / (2 * (math.pow(std, 2))))
@@ -45,27 +45,24 @@ class TransductiveInference:
         
         return w
 
-    def create_S(self):
-        d = np.sum(self.affinity_matrix, axis=1)
+    def __create_S(self):
+        d = np.sum(self.__affinity_matrix, axis=1)
         D = np.sqrt(d * d[:, np.newaxis])
 
-        return np.divide(self.affinity_matrix, D, where= D != 0)
+        return np.divide(self.__affinity_matrix, D, where= D != 0)
 
-    def y_input(self):
+    def __y_input(self):
         return np.concatenate(((self.__adapter.y[:, None] == np.arange(1, self.__adapter.n_labeled + 1)).astype(float),
                                np.zeros((self.__adapter.n_not_labeled, self.__adapter.n_labeled))))
 
     def fit_predict(self):
-        y_input = self.y_input()
+        y_input = self.__y_input()
         
-        F = np.dot(self.s, y_input) * self.alpha + (1 - self.alpha) * y_input
-        # for _ in range(self.n_iter):
-        #     F = np.dot(self.s, F) * self.alpha + (1 - self.alpha) * y_input
-
-        # print("Final F:", F)
+        F = np.dot(self.__s, y_input) * self.__alpha + (1 - self.__alpha) * y_input
+        # for _ in range(self.__n_iter):
+        #     F = np.dot(self.__s, F) * self.__alpha + (1 - self.__alpha) * y_input
 
         Y_result = np.zeros_like(F)
-        # Y_result[np.arange(len(F)), np.argmax(1)] = 1
 
         for i in range(len(F)):
             dim = len(F[0])
@@ -76,8 +73,6 @@ class TransductiveInference:
                     max = j
             Y_result[i][0] = max
 
-        # print("Classification results:", Y_result[0:,0])
-        
         Y_v = [x for x in Y_result[0:,0]]
 
         color = []
