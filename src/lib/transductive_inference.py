@@ -13,7 +13,7 @@ class TransductiveInference:
     
     def __init__(self, pd_data: pd.Series,
                  graph_type: (AdjacencyList | AdjacencyMatrix) = AdjacencyMatrix,
-                 n_iter: int = 400) -> None:
+                 n_iter: int = 1) -> None:
         self.__adapter = _PandasAdapter(pd_data)
         #self.__graph = (self.__adapter.get_adjacency_matrix()
         #                if graph_type == AdjacencyMatrix else self.__adapter.get_adjacency_list())
@@ -52,22 +52,45 @@ class TransductiveInference:
         for _ in range(self.n_iter):
             F = np.dot(self.s, F) * self.alpha + (1 - self.alpha) * y_input
 
+        print("Final F:", F)
+
         Y_result = np.zeros_like(F)
-        Y_result[np.arange(len(F)), np.argmax(1)] = 1
+        # Y_result[np.arange(len(F)), np.argmax(1)] = 1
 
-        print(Y_result[0:,0])
-        print(Y_result[0:,1])
+        for i in range(len(F)):
+            dim = len(F[0])
+            max = 0
+            
+            for j in range(dim):
+                if F[i][j] > F[i][max]:
+                    max = j
+            Y_result[i][0] = max
+
+        print()
+        print("Classification results:", Y_result[0:,0])
         
-        Y_v = [1 if x == 0 else 0 for x in Y_result[0:,0]]
+        # Y_v = [1 if x == 0 else 0 for x in Y_result[0:,0]]
+        Y_v = [x for x in Y_result[0:,0]]
 
-        color = ['red' if l == 0 else 'blue' for l in Y_v]
+        color = []
+        for l in Y_v:
+            if l == 0:
+                color.append('red')
+            elif l == 1:
+                color.append('blue')
+            elif l == 2:
+                color.append('orange')
+            elif l == 3:
+                color.append('purple')
+            else:
+                color.append('black')
         
         plt.scatter(self.__adapter.x[0:,0], self.__adapter.x[0:,1], color=color)
         #plt.savefig("iter_1.pdf", format='pdf')
         plt.show()
 
 class _PandasAdapter:
-    def __init__(self, data: pd.Series, n_labeled_frac: float = (0.1)) -> None:
+    def __init__(self, data: pd.Series, n_labeled_frac: float = (1/125)) -> None:
         if 0.0 >= n_labeled_frac >= 1.0:
             raise ValueError("Train size must in the open interval (0, 1).")
         
