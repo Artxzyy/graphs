@@ -244,6 +244,4 @@ print("\nS {D^(-1/2)WD^(-1/2)}\n")
 
 print(ti.s)
 
-print("\nY",ti.y_input())
-
 ti.fit()
