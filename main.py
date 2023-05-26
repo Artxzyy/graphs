@@ -194,10 +194,18 @@ if __name__ == "__main__":
 # 
 # print(np_array)
 
-am = AdjacencyMatrix(n=2, directed=True, e_weighted=True)
+am = AdjacencyMatrix(n=5, labels=('a', 'b', 'c', 'd', 'e'), e_weighted=True)
+
+am.add_edge(('a',), ('b',), weight=(2.5,))
+
+am.to_csv("teste.csv")
 
 data, y = make_moons(500, shuffle=True, noise=0.1, random_state=None)
 
 ti = TransductiveInference(pd.DataFrame(data))
+
 ti.fit_predict()
 ti.plot()
+
+
+

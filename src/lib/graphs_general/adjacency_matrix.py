@@ -447,6 +447,34 @@ class AdjacencyMatrix:
             if not self.__directed:
                 self.__matrix[e_pos[1]][e_pos[0]][1] = new_weight
 
+    def to_csv(self, filename: str) -> None:
+        fstream = None
+        try:
+            fstream = open(filename, mode="x")
+        except FileExistsError:
+            raise FileExistsError(f"The file '{filename}' already exists and we will not override it. Provide a valid name to continue.")
+        
+        # write first line
+            
+        line = f";{self.__vertexes[0].get_label()}"
+        line += "".join([f";{self.__vertexes[i].get_label()}" for i in range(1, len(self.__vertexes))])
+        line += '\n'
+
+        fstream.write(line)
+
+        # write other len(self.__vertexes) lines
+
+        for i, v1 in enumerate(self.__vertexes):
+            line = f"{v1.get_label()}"
+            for j in range(len(self.__vertexes)):
+                line += f";{'0' if self.__matrix[i][j][1] is None else self.__matrix[i][j][1]}"
+            line += '\n'
+
+            fstream.write(line)
+        
+        fstream.flush()
+        fstream.close()
+
     def __create_vertex(self, n: int, labels: (tuple[str] | tuple[int] | None) = None,
                       weights: (tuple[float] | None) = None) -> list:
         """Create N vertexes with its labels and weights, if needed.
@@ -504,7 +532,7 @@ class AdjacencyMatrix:
             raise IndexError(f"The length for weights ({len(weights)}) must be equal to {n}.")
         
         n_labels = tuple([i for i in range(self.__edge_iterable, self.__edge_iterable + n)]) if labels is None else labels
-        n_weights = ((None,) * n) if weights is None else weights
+        n_weights = ((1,) * n) if weights is None else weights
 
         if labels is None:
             self.__edge_iterable += n
