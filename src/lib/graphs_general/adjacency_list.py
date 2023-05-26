@@ -479,6 +479,26 @@ class AdjacencyList:
                 raise ValueError("New weight cannot be None.")
             e.set_weight(new_weight)
 
+    def to_csv(self, filename: str) -> None:
+        fstream = None
+        try:
+            fstream = open(filename, mode="x")
+        except FileExistsError:
+            raise FileExistsError(f"The file '{filename}' already exists and we will not override it. Provide a valid name to continue.")
+
+        # write len(self.__vertexes) lines
+
+        for key in self.__vertexes:
+            line = f"{key.get_label()}"
+            for w in self.__vertexes[key]:
+                line += f";{w.to.get_label()}"
+            line += '\n'
+
+            fstream.write(line)
+        
+        fstream.flush()
+        fstream.close()
+
     def __create_vertex(self, n: int, labels: (tuple[str] | tuple[int] | None) = None,
                       weights: (tuple[float] | None) = None) -> dict:
         """Create N vertexes with its labels and weights, if needed.

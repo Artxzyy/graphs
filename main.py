@@ -198,14 +198,17 @@ am = AdjacencyMatrix(n=5, labels=('a', 'b', 'c', 'd', 'e'), e_weighted=True)
 
 am.add_edge(('a',), ('b',), weight=(2.5,))
 
-am.to_csv("teste.csv")
+am.to_csv("teste_am.csv")
 
-data, y = make_moons(500, shuffle=True, noise=0.1, random_state=None)
+data, y = make_moons(500, shuffle=False, noise=0.1, random_state=None)
 
 ti = TransductiveInference(pd.DataFrame(data))
 
 ti.fit_predict()
-ti.plot()
+# ti.plot()
 
+al = AdjacencyList(directed=False, e_weighted=True)
 
+al.add_edge((1, 4, 4), (3, 1, 5), weight=(1.5, 5.0, 2.0))
+al.to_csv("teste_al.csv")
 
