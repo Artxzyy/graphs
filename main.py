@@ -159,44 +159,11 @@ if __name__ == "__main__":
                                "13 - Print graph info;\n0 - Quit.\n--> "))
             al.print()
 
-# data: pd.Series = pd.read_csv("tests/basic_csv.csv", sep=",").squeeze(axis=0)
-# 
-# print(data)
-# print()
-# 
-# ti = TransductiveInference(data)
-# 
-# afm = ti.create_affinity_matrix()
-# print(afm)
-# 
-# print("\n\n")
-# am = AdjacencyMatrix()
-# 
-# np_array = am.get_np_array()
-# 
-# print(np_array)
-# 
-# np.fill_diagonal(a=np_array, val=0.0)
-# 
-# def m_values(xi, xj):
-#     sigma2 = ti.std() ** 2
-#     den = ((2 * math.pi * sigma2) ** (1/2))
-#     exp_den = 2 * sigma2
-#     exp_total = (((xi - xj) ** 2)) / exp_den
-#     # return (1 / den) * math.exp(-((xi - xj) ** (2)) / (2 * (ti.std() ** (2))))
-#     return (1 / den) * (math.exp( - exp_total))
-# 
-# print(len(np_array[0]))
-# 
-# for i in range(len(np_array[0])):
-#     for j in range(len(np_array[0])):
-#         np_array[i][j] = m_values(np_array[i][i], np_array[j][j])
-# 
-# print(np_array)
+am = AdjacencyMatrix(n=5, labels=('a', 'b', 'c', 'd', 'e'), weights=(1.5, 2, 3, 10, 5.3), e_labeled=True, e_weighted=True)
 
-am = AdjacencyMatrix(n=5, labels=('a', 'b', 'c', 'd', 'e'), weights=(1.5, 2, 3, 10, 5.3), e_weighted=True)
-
-am.add_edge(('a',), ('b',), weight=(2.5,))
+am.add_edge(('a',), ('b',), label=('EdgeA',), weight=(2.5,))
+am.print()
+am.info()
 
 am.to_gdf("test_gdf_am.csv")
 am.to_csv("test_csv_am.csv")
@@ -206,10 +173,13 @@ am.to_csv("test_csv_am.csv")
 #ti = TransductiveInference(pd.DataFrame(data))
 
 #ti.fit_predict()
-# ti.plot()
+#ti.plot()
 
 al = AdjacencyList(directed=False, e_weighted=True)
 
-#al.add_edge((1, 4, 4), (3, 1, 5), weight=(1.5, 5.0, 2.0))
-#al.to_gdf("test_gdf_al.csv")
+al.add_edge((1, 4, 4), (3, 1, 5), weight=(1.5, 5.0, 2.0))
+al.print(verbose=True)
+print(al.info())
+
+#al.to_gdf("test_gdf_al.csv") # don't exist yet
 #al.to_csv("test_csv_al.csv")

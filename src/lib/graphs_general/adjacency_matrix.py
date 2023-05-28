@@ -1,9 +1,11 @@
 from .vertex.vertex import Vertex
 from .edge.edge import Edge
 
+from .generic_graph.graph import _Graph
+
 import numpy as np
 
-class AdjacencyMatrix:
+class AdjacencyMatrix(_Graph):
 
     """
     Adjacency Matrix for the computational representation of a mathematical graph.
@@ -62,22 +64,10 @@ class AdjacencyMatrix:
         if n < 0:
             raise ValueError(f"N must be greater than or equal to zero, but received {n}.")
         
-        self.__n = n
-        self.__edges_counter = 0
-        
-        self.__directed = directed
-
-        self.__v_labeled = False if labels is None else True
-        self.__v_weighted = False if weights is None else True
-
-        if not self.__v_labeled:
-            self.__vertex_iterable = 1
-
-        self.__e_labeled = e_labeled
-        self.__e_weighted = e_weighted
-
-        if not self.__e_labeled:
-            self.__edge_iterable = 1
+        super().__init__(n, directed,
+                         (False if labels is None else True),
+                         (False if weights is None else True),
+                         e_labeled, e_weighted)
 
         tmp_vertexes = self.__create_vertex(n, labels, weights)
 
@@ -133,23 +123,8 @@ class AdjacencyMatrix:
         verbose: bool = False
             boolean that defines if the vertexes will be printed with all information or just the label
         """
-
-        # for v in self.__vertexes:
-        #     print(v.to_string(verbose=verbose), " -> ", sep="", end="")
-        # 
-        #     if len(self.__vertexes[v]) > 0:
-        #         print(self.__vertexes[v][0].to.to_string(verbose=verbose), sep="", end="")
-        # 
-        #         for e in self.__vertexes[v][1:]:
-        #             print(", ", e.to.to_string(verbose=verbose), sep="", end="")
-        #     else:
-        #         print("None", end="")
-        #     print()
         print(self.__matrix)
 
-    def get_np_array(self):
-        return self.__matrix
-    
     def add_vertex(self, n: int,
                    label: (tuple[str] | tuple[int] | None) = None,
                    weight: (tuple[float] | None) = None) -> None:
@@ -169,27 +144,27 @@ class AdjacencyMatrix:
         if n <= 0:
             raise ValueError(f"N must be greater than zero, but received {n}.")
         
-        if self.__v_labeled and self.__v_weighted:
+        if self._v_labeled and self._v_weighted:
             if label is not None and weight is not None and (not (n == len(label) == len(weight))):
                 raise IndexError(f"The length for labels ({len(label)}) and weights ({len(weight)}) \
                                  cannot be None and must be equal to {n}.")
-        elif self.__v_labeled:
+        elif self._v_labeled:
             if label is not None and len(label) != n:
                 raise IndexError(f"The length for labels ({len(label)}) cannot be None and must be equal to {n}.")
-        elif self.__v_weighted:
+        elif self._v_weighted:
             if weight is not None and len(weight) != n:
                 raise IndexError(f"The length for weights ({len(weight)}) cannot be None and must be equal to {n}.")
 
         v = self.__create_vertex(n, label, weight)
         len_v = len(v)
-        self.__n += len_v
+        self._n += len_v
 
-        tmp_matrix = AdjacencyMatrix.__copy_to_array_with_other_dimentions(self.__matrix, (self.__n, self.__n))
+        tmp_matrix = AdjacencyMatrix.__copy_to_array_with_other_dimentions(self.__matrix, (self._n, self._n))
 
         self.__matrix = tmp_matrix.copy()
 
-        for i in range(self.__n - len_v, self.__n):
-            self.__vertexes.append(v[i - (self.__n - len_v)])
+        for i in range(self._n - len_v, self._n):
+            self.__vertexes.append(v[i - (self._n - len_v)])
 
     def add_edge(self, v: (tuple[str] | tuple[int]), w: (tuple[str] | tuple[int]),
                  label: ((tuple[str] | tuple[int]) | None) = None, weight: (tuple[float] | None) = None) -> None:
@@ -229,14 +204,14 @@ class AdjacencyMatrix:
             v_pos[i] = tmp1
             w_pos[i] = tmp2
         
-        if self.__e_labeled and self.__e_weighted:
+        if self._e_labeled and self._e_weighted:
             if label is not None and weight is not None and (not (n == len(label) == len(weight))):
                 raise IndexError(f"The length for labels ({len(label)}) and weights ({len(weight)}) \
                                  cannot be None and must be equal to {n}.")
-        elif self.__e_labeled:
+        elif self._e_labeled:
             if label is not None and len(label) != n:
                 raise IndexError(f"The length for labels ({len(label)}) cannot be None and must be equal to {n}.")
-        elif self.__e_weighted:
+        elif self._e_weighted:
             if weight is not None and len(weight) != n:
                 raise IndexError(f"The length for weights ({len(weight)}) cannot be None and must be equal to {n}.")
         else:
@@ -250,11 +225,11 @@ class AdjacencyMatrix:
         for i in range(n):
             self.__matrix[int(v_pos[i])][int(w_pos[i])][0] = edges[i][0]
             self.__matrix[int(v_pos[i])][int(w_pos[i])][1] = edges[i][1]
-            if not self.__directed:
+            if not self._directed:
                 self.__matrix[int(w_pos[i])][int(v_pos[i])][0] = edges[i][0]
                 self.__matrix[int(w_pos[i])][int(v_pos[i])][1] = edges[i][1]
 
-        self.__edges_counter += n
+        self._edges_counter += n
     
     def remove_vertex(self, v: (Vertex | str | int)) -> Vertex:
         """Remove vertex passed as parameter if possible.
@@ -284,10 +259,10 @@ class AdjacencyMatrix:
         self.__matrix = AdjacencyMatrix.__copy_to_array_without_position(self.__matrix, v_pos)
 
         # subtract amount of edges
-        self.__edges_counter -= (v_to_w + w_to_v) if self.__directed else v_to_w
+        self._edges_counter -= (v_to_w + w_to_v) if self._directed else v_to_w
 
         # subtract amount of vertexes
-        self.__n -= 1
+        self._n -= 1
 
         return removed
 
@@ -311,10 +286,10 @@ class AdjacencyMatrix:
             raise ValueError(f"The edge E was not found in the graph.")
         
         self.__matrix[pos[0]][pos[1]] = None
-        if not self.__directed:
+        if not self._directed:
             self.__matrix[pos[1]][pos[0]] = None
 
-        self.__edges_counter -= 1
+        self._edges_counter -= 1
 
         return removed
     
@@ -395,13 +370,13 @@ class AdjacencyMatrix:
             raise ValueError(f"Edge {v.get_label() if type(v) == Vertex else v} was not found in the Graph.")
         
         vertex: Vertex = self.__vertexes[v_pos]
-        if self.__v_labeled:
+        if self._v_labeled:
             if new_label is None:
                 raise ValueError("New label cannot be None.")
             if self.__v_label_exists(new_label):
                 raise ValueError(f"The label '{new_label}' already exists.")
             vertex.set_label(new_label)
-        if self.__v_weighted:
+        if self._v_weighted:
             if new_weight is None:
                 raise ValueError("New weight cannot be None.")
             vertex.set_weight(new_weight)
@@ -432,19 +407,19 @@ class AdjacencyMatrix:
         if e_pos[0] == -1 or e_pos[1] == -1:
             raise ValueError(f"This edge was not found in the Graph.")
         
-        if self.__e_labeled:
+        if self._e_labeled:
             if new_label is None:
                 raise ValueError("New label cannot be None.")
             if self.__e_label_exists(new_label):
                 raise ValueError(f"The label '{new_label}' already exists.")
             self.__matrix[e_pos[0]][e_pos[1]][0] = new_label
-            if not self.__directed:
+            if not self._directed:
                 self.__matrix[e_pos[1]][e_pos[0]][0] = new_label
-        if self.__e_weighted:
+        if self._e_weighted:
             if new_weight is None:
                 raise ValueError("New weight cannot be None.")
             self.__matrix[e_pos[0]][e_pos[1]][1] = new_weight
-            if not self.__directed:
+            if not self._directed:
                 self.__matrix[e_pos[1]][e_pos[0]][1] = new_weight
 
     def to_csv(self, filename: str) -> None:
@@ -486,7 +461,7 @@ class AdjacencyMatrix:
 
         data = None
         for v in self.__vertexes:
-            if self.__v_weighted:
+            if self._v_weighted:
                 data = {"name": v.get_label(), "label": v.get_label(), "weight": v.get_weight()}
             else:
                 data = {"name": v.get_label(), "label": v.get_label()}
@@ -498,7 +473,7 @@ class AdjacencyMatrix:
         for i in range(len(self.__matrix)):
             for j, v in enumerate(self.__matrix[i]):
                 if v[0] is not None:
-                    if self.__e_weighted:
+                    if self._e_weighted:
                         data = {
                             "node1": self.__vertexes[i].get_label(),
                             "node2": self.__vertexes[j].get_label(),
@@ -517,16 +492,16 @@ class AdjacencyMatrix:
 
         if is_def and is_vertex:
             # nodedef>name VARCHAR,label VARCHAR,weight DOUBLE
-            line = f"nodedef>name VARCHAR,label VARCHAR{',weight DOUBLE' if self.__v_weighted else ''}"
+            line = f"nodedef>name VARCHAR,label VARCHAR{',weight DOUBLE' if self._v_weighted else ''}"
         elif is_def:
             # edgedef>node1 VARCHAR,node2 VARCHAR,label VARCHAR, weight DOUBLE
-            line = f"edgedef>node1 VARCHAR, node2 VARCHAR,label VARCHAR{',weight DOUBLE' if self.__e_weighted else ''}"
+            line = f"edgedef>node1 VARCHAR, node2 VARCHAR,label VARCHAR{',weight DOUBLE' if self._e_weighted else ''}"
         elif is_vertex:
             # s1,Site number 1, 100.5
-            line = f"{data['name']},{data['label']}{(',' + str(data['weight'])) if self.__v_weighted else ''}"
+            line = f"{data['name']},{data['label']}{(',' + str(data['weight'])) if self._v_weighted else ''}"
         else:
             # s1,s2,A,1.2341
-            line = f"{data['node1']},{data['node2']},{data['label']}{(',' + str(data['weight'])) if self.__e_weighted else ''}"
+            line = f"{data['node1']},{data['node2']},{data['label']}{(',' + str(data['weight'])) if self._e_weighted else ''}"
         line += '\n'
         return line
 
@@ -545,20 +520,20 @@ class AdjacencyMatrix:
             Weights iterable. Must have length N if the attribute v_weighted is True; if False, the
             value must be None.
         """
-        if not self.__v_labeled and labels is not None:
+        if not self._v_labeled and labels is not None:
             raise ValueError("The attribute v_labeled is False, but the labels parameter is not None. With v_labeled False, labels must be None.") 
-        if not self.__v_weighted and weights is not None:
+        if not self._v_weighted and weights is not None:
             raise ValueError("The attribute v_weighted is False, but the weights parameter is not None. With v_weighted False, weights must be None.")
         if labels is not None and len(labels) != n:
             raise IndexError(f"The length for labels ({len(labels)}) must be equal to {n}.")
         if weights is not None and len(weights) != n:
             raise IndexError(f"The length for weights ({len(weights)}) must be equal to {n}.")
         
-        n_labels = tuple([i for i in range(self.__vertex_iterable, self.__vertex_iterable + n)]) if labels is None else labels
+        n_labels = tuple([i for i in range(self._vertex_iterable, self._vertex_iterable + n)]) if labels is None else labels
         n_weights = ((None,) * n) if weights is None else weights
 
         if labels is None:
-            self.__vertex_iterable += n
+            self._vertex_iterable += n
         
         return tuple([Vertex(n_labels[i], n_weights[i]) for i  in range(n)])
     
@@ -577,20 +552,20 @@ class AdjacencyMatrix:
             Weights iterable. Must have length N if the attribute e_weighted is True; if False, the
             value must be None.
         """
-        if not self.__e_labeled and labels is not None:
+        if not self._e_labeled and labels is not None:
             raise ValueError("The attribute e_labeled is False, but the labels parameter is not None. With e_labeled False, labels must be None.") 
-        if not self.__e_weighted and weights is not None:
+        if not self._e_weighted and weights is not None:
             raise ValueError("The attribute e_weighted is False, but the weights parameter is not None. With e_weighted False, weights must be None.")
         if labels is not None and len(labels) != n:
             raise IndexError(f"The length for labels ({len(labels)}) must be equal to {n}.")
         if weights is not None and len(weights) != n:
             raise IndexError(f"The length for weights ({len(weights)}) must be equal to {n}.")
         
-        n_labels = tuple([i for i in range(self.__edge_iterable, self.__edge_iterable + n)]) if labels is None else labels
+        n_labels = tuple([i for i in range(self._edge_iterable, self._edge_iterable + n)]) if labels is None else labels
         n_weights = ((1,) * n) if weights is None else weights
 
         if labels is None:
-            self.__edge_iterable += n
+            self._edge_iterable += n
     
         return tuple([np.array([n_labels[i], n_weights[i]]) for i in range(n)])
     

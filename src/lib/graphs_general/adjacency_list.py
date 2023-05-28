@@ -1,7 +1,9 @@
 from .vertex.vertex import Vertex
 from .edge.edge import ListEdge
 
-class AdjacencyList:
+from .generic_graph.graph import _Graph
+
+class AdjacencyList(_Graph):
     """
     Adjacency List for the computational representation of a mathematical graph.
     It can have labels and weights in either edges or vertexes; it can be directed or not;
@@ -58,23 +60,12 @@ class AdjacencyList:
         if n < 0:
             raise ValueError(f"N must be greater than or equal to zero, but received {n}.")
         
-        self.__n = n
-        self.__edges_counter = 0
-        
-        self.__directed = directed
+        super().__init__(n, directed,
+                         (False if labels is None else True),
+                         (False if weights is None else True),
+                         e_labeled, e_weighted)
+
         self.__vertexes = {} # {VertexOne: [EdgesOne], VertexTwo: [EdgesTwo]}
-
-        self.__v_labeled = False if labels is None else True
-        self.__v_weighted = False if weights is None else True
-
-        if not self.__v_labeled:
-            self.__vertex_iterable = 1
-
-        self.__e_labeled = e_labeled
-        self.__e_weighted = e_weighted
-
-        if not self.__e_labeled:
-            self.__edge_iterable = 1
 
         tmp_vertexes = self.__create_vertex(n, labels, weights)
 
@@ -82,49 +73,6 @@ class AdjacencyList:
             self.__vertexes[v] = []
         
         self.__keys = tuple(list(self.__vertexes.keys()))
-
-    def info(self) -> dict:
-        """Returns a dictionary with how this graph was built and how which parameters were defined."""
-        return {
-            "directed": self.__directed,
-            "v_labeled": self.__v_labeled,
-            "v_weighted": self.__v_weighted,
-            "e_labeled": self.__e_labeled,
-            "e_weighted": self.__e_weighted
-        }
-
-    def size(self) -> int:
-        """Returns the amount of vertexes in the graph."""
-        return self.__n
-    
-    def edges(self) -> int:
-        """Returns the amount of edges in the graph."""
-        return self.__edges_counter
-    
-    def complete(self) -> bool:
-        """Tests if amount of edges is equal to ((n * (n - 1)) / 2). If equal, and supposing the graph is simple,
-        returns True; otherwise, False."""
-        return (self.__edges_counter == (self.__n * (self.__n - 1)) / 2)
-
-    def v_labeled(self) -> bool:
-        """Returns if the graph has labels for vertexes."""
-        return self.__v_labeled
-    
-    def v_weighted(self) -> bool:
-        """Returns if the graph has weights for vertexes."""
-        return self.__v_weighted
-    
-    def e_labeled(self) -> bool:
-        """Returns if the graph has labels for edges."""
-        return self.__e_labeled
-    
-    def e_weighted(self) -> bool:
-        """Returns if the graph has weights for edges."""
-        return self.__e_weighted
-    
-    def empty(self) -> bool:
-        """Returns if the amount of vertexes in the graph equals 0."""
-        return self.__n == 0
     
     def print(self, verbose: bool = False) -> None:
         """
@@ -170,21 +118,21 @@ class AdjacencyList:
         if n <= 0:
             raise ValueError(f"N must be greater than zero, but received {n}.")
         
-        if self.__v_labeled and self.__v_weighted:
+        if self._v_labeled and self._v_weighted:
             if label is not None and weight is not None and (not (n == len(label) == len(weight))):
                 raise IndexError(f"The length for labels ({len(label)}) and weights ({len(weight)}) \
                                  cannot be None and must be equal to {n}.")
-        elif self.__v_labeled:
+        elif self._v_labeled:
             if label is not None and len(label) != n:
                 raise IndexError(f"The length for labels ({len(label)}) cannot be None and must be equal to {n}.")
-        elif self.__v_weighted:
+        elif self._v_weighted:
             if weight is not None and len(weight) != n:
                 raise IndexError(f"The length for weights ({len(weight)}) cannot be None and must be equal to {n}.")
 
         v = self.__create_vertex(n, label, weight)
         for i in v:
             self.__vertexes[i] = []
-            self.__n += 1
+            self._n += 1
         self.__keys = tuple(list(self.__vertexes.keys()))
 
     def add_edge(self, v: (tuple[str] | tuple[int]), w: (tuple[str] | tuple[int]),
@@ -225,14 +173,14 @@ class AdjacencyList:
             v_pos.append(tmp1)
             w_pos.append(tmp2)
         
-        if self.__e_labeled and self.__e_weighted:
+        if self._e_labeled and self._e_weighted:
             if label is not None and weight is not None and (not (n == len(label) == len(weight))):
                 raise IndexError(f"The length for labels ({len(label)}) and weights ({len(weight)}) \
                                  cannot be None and must be equal to {n}.")
-        elif self.__e_labeled:
+        elif self._e_labeled:
             if label is not None and len(label) != n:
                 raise IndexError(f"The length for labels ({len(label)}) cannot be None and must be equal to {n}.")
-        elif self.__e_weighted:
+        elif self._e_weighted:
             if weight is not None and len(weight) != n:
                 raise IndexError(f"The length for weights ({len(weight)}) cannot be None and must be equal to {n}.")
         else:
@@ -245,10 +193,10 @@ class AdjacencyList:
 
         for i in range(n):
             self.__vertexes[self.__keys[v_pos[i]]].append(all_ws[i])
-            if not self.__directed:
+            if not self._directed:
                 self.__vertexes[self.__keys[w_pos[i]]].append(ListEdge(self.__keys[v_pos[i]], all_ws[i].get_label(), all_ws[i].get_weight()))
 
-        self.__edges_counter += n
+        self._edges_counter += n
     
     def remove_vertex(self, v: (Vertex | str | int)) -> Vertex:
         """Remove vertex passed as parameter if possible.
@@ -287,10 +235,10 @@ class AdjacencyList:
                         w_to_v += 1
         
         # subtract amount of edges
-        self.__edges_counter -= (v_to_w + w_to_v) if self.__directed else v_to_w
+        self._edges_counter -= (v_to_w + w_to_v) if self._directed else v_to_w
 
         # subtract amount of vertexes
-        self.__n -= 1
+        self._n -= 1
 
         self.__keys = tuple(list(self.__vertexes.keys()))
 
@@ -330,7 +278,7 @@ class AdjacencyList:
         # removed edge
         removed = self.__vertexes[ve].pop(pos[1])
 
-        if not self.__directed:
+        if not self._directed:
             if type(e) == ListEdge:
                 e_pos = AdjacencyList.__search_edge_by_w_vertex_label(w_label=ve.get_label(), l=self.__vertexes[e.to])
                 if e_pos == -1:
@@ -341,7 +289,7 @@ class AdjacencyList:
                 if e_pos == -1:
                     raise ValueError("The adjacency is not correctly formed. Something went wrong and we don't know what it is.")
                 self.__vertexes[self.__keys[w_pos]].pop(e_pos)
-        self.__edges_counter -= 1
+        self._edges_counter -= 1
 
         return removed
 
@@ -430,13 +378,13 @@ class AdjacencyList:
             raise ValueError(f"Edge {v.get_label() if type(v) == Vertex else v} was not found in the Graph.")
         
         vertex: Vertex = self.__keys[v_pos]
-        if self.__v_labeled:
+        if self._v_labeled:
             if new_label is None:
                 raise ValueError("New label cannot be None.")
             if self.__v_label_exists(new_label):
                 raise ValueError(f"The label '{new_label}' already exists.")
             vertex.set_label(new_label)
-        if self.__v_weighted:
+        if self._v_weighted:
             if new_weight is None:
                 raise ValueError("New weight cannot be None.")
             vertex.set_weight(new_weight)
@@ -468,13 +416,13 @@ class AdjacencyList:
             raise ValueError(f"This edge was not found in the Graph.")
         
         e: ListEdge = self.__vertexes[self.__keys[e_pos[0]]][e_pos[1]]
-        if self.__e_labeled:
+        if self._e_labeled:
             if new_label is None:
                 raise ValueError("New label cannot be None.")
             if self.__e_label_exists(new_label):
                 raise ValueError(f"The label '{new_label}' already exists.")
             e.set_label(new_label)
-        if self.__e_weighted:
+        if self._e_weighted:
             if new_weight is None:
                 raise ValueError("New weight cannot be None.")
             e.set_weight(new_weight)
@@ -514,20 +462,20 @@ class AdjacencyList:
             Weights iterable. Must have length N if the attribute v_weighted is True; if False, the
             value must be None.
         """
-        if not self.__v_labeled and labels is not None:
+        if not self._v_labeled and labels is not None:
             raise ValueError("The attribute v_labeled is False, but the labels parameter is not None. With v_labeled False, labels must be None.") 
-        if not self.__v_weighted and weights is not None:
+        if not self._v_weighted and weights is not None:
             raise ValueError("The attribute v_weighted is False, but the weights parameter is not None. With v_weighted False, weights must be None.")
         if labels is not None and len(labels) != n:
             raise IndexError(f"The length for labels ({len(labels)}) must be equal to {n}.")
         if weights is not None and len(weights) != n:
             raise IndexError(f"The length for weights ({len(weights)}) must be equal to {n}.")
         
-        n_labels = tuple([i for i in range(self.__vertex_iterable, self.__vertex_iterable + n)]) if labels is None else labels
+        n_labels = tuple([i for i in range(self._vertex_iterable, self._vertex_iterable + n)]) if labels is None else labels
         n_weights = ((None,) * n) if weights is None else weights
 
         if labels is None:
-            self.__vertex_iterable += n
+            self._vertex_iterable += n
         
         res = {}
         for i in range(n):
@@ -552,20 +500,20 @@ class AdjacencyList:
             Weights iterable. Must have length N if the attribute e_weighted is True; if False, the
             value must be None.
         """
-        if not self.__e_labeled and labels is not None:
+        if not self._e_labeled and labels is not None:
             raise ValueError("The attribute e_labeled is False, but the labels parameter is not None. With e_labeled False, labels must be None.") 
-        if not self.__e_weighted and weights is not None:
+        if not self._e_weighted and weights is not None:
             raise ValueError("The attribute e_weighted is False, but the weights parameter is not None. With e_weighted False, weights must be None.")
         if labels is not None and len(labels) != n:
             raise IndexError(f"The length for labels ({len(labels)}) must be equal to {n}.")
         if weights is not None and len(weights) != n:
             raise IndexError(f"The length for weights ({len(weights)}) must be equal to {n}.")
         
-        n_labels = tuple([i for i in range(self.__edge_iterable, self.__edge_iterable + n)]) if labels is None else labels
+        n_labels = tuple([i for i in range(self._edge_iterable, self._edge_iterable + n)]) if labels is None else labels
         n_weights = ((None,) * n) if weights is None else weights
 
         if labels is None:
-            self.__edge_iterable += n
+            self._edge_iterable += n
     
         w_keys = []
 
