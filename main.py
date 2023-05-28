@@ -165,7 +165,7 @@ am.add_edge(('a',), ('b',), label=('EdgeA',), weight=(2.5,))
 am.print()
 am.info()
 
-am.to_gdf("test_gdf_am.csv")
+am.to_gdf("test_gdf_am.gdf")
 am.to_csv("test_csv_am.csv")
 
 #data, y = make_moons(500, shuffle=False, noise=0.1, random_state=None)
@@ -178,8 +178,8 @@ am.to_csv("test_csv_am.csv")
 al = AdjacencyList(directed=False, e_weighted=True)
 
 al.add_edge((1, 4, 4), (3, 1, 5), weight=(1.5, 5.0, 2.0))
-al.print(verbose=True)
+al.print()
 print(al.info())
 
-#al.to_gdf("test_gdf_al.csv") # don't exist yet
-#al.to_csv("test_csv_al.csv")
+al.to_gdf("test_gdf_al.gdf") # don't exist yet
+al.to_csv("test_csv_al.csv")

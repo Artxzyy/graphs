@@ -447,6 +447,50 @@ class AdjacencyList(_Graph):
         fstream.flush()
         fstream.close()
 
+    def to_gdf(self, filename: str) -> None:
+        fstream = None
+        try:
+            fstream = open(filename, mode="x")
+        except FileExistsError:
+            raise FileExistsError(f"The file '{filename}' already exists and we will not override it. Provide a valid name to continue.")
+        
+        fstream.write(self._get_gdf_line(True, True))
+
+        data = None
+        if self._v_weighted:
+            for key in self.__vertexes:
+                data = {"name": key.get_label(), "label": key.get_label(), "weight": key.get_weight()}
+                fstream.write(self._get_gdf_line(False, True, data))
+        else:
+            for key in self.__vertexes:
+                data = {"name": key.get_label(), "label": key.get_label()}
+                fstream.write(self._get_gdf_line(False, True, data))
+
+        fstream.write(self._get_gdf_line(True, False))
+
+        data = None
+        if self._e_weighted:
+            for key in self.__vertexes:
+                for w in self.__vertexes[key]:
+                    data = {
+                            "node1": key.get_label(),
+                            "node2": w.to.get_label(),
+                            "label": w.get_label(), "weight": w.get_weight()
+                            }
+                    fstream.write(self._get_gdf_line(False, False, data))
+        else:
+            for key in self.__vertexes:
+                for w in self.__vertexes[key]:
+                    data = {
+                            "node1": key.get_label(),
+                            "node2": w.to.get_label(),
+                            "label": w.get_label()
+                            }
+                    fstream.write(self._get_gdf_line(False, False, data))
+        
+        fstream.flush()
+        fstream.close()
+
     def __create_vertex(self, n: int, labels: (tuple[str] | tuple[int] | None) = None,
                       weights: (tuple[float] | None) = None) -> dict:
         """Create N vertexes with its labels and weights, if needed.

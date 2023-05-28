@@ -78,3 +78,21 @@ class _Graph:
     def empty(self) -> bool:
         """Returns if the amount of vertexes in the graph equals 0."""
         return self._n == 0
+    
+    def _get_gdf_line(self, is_def: bool, is_vertex: bool, data: dict = None) -> str:
+        line = None
+
+        if is_def and is_vertex:
+            # nodedef>name VARCHAR,label VARCHAR,weight DOUBLE
+            line = f"nodedef>name VARCHAR,label VARCHAR{',weight DOUBLE' if self._v_weighted else ''}"
+        elif is_def:
+            # edgedef>node1 VARCHAR,node2 VARCHAR,label VARCHAR, weight DOUBLE
+            line = f"edgedef>node1 VARCHAR, node2 VARCHAR,label VARCHAR{',weight DOUBLE' if self._e_weighted else ''}"
+        elif is_vertex:
+            # s1,Site number 1, 100.5
+            line = f"{data['name']},{data['label']}{(',' + str(data['weight'])) if self._v_weighted else ''}"
+        else:
+            # s1,s2,A,1.2341
+            line = f"{data['node1']},{data['node2']},{data['label']}{(',' + str(data['weight'])) if self._e_weighted else ''}"
+        line += '\n'
+        return line

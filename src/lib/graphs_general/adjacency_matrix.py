@@ -457,53 +457,44 @@ class AdjacencyMatrix(_Graph):
         except FileExistsError:
             raise FileExistsError(f"The file '{filename}' already exists and we will not override it. Provide a valid name to continue.")
         
-        fstream.write(self.__get_gdf_line(True, True))
+        fstream.write(self._get_gdf_line(True, True))
 
         data = None
-        for v in self.__vertexes:
-            if self._v_weighted:
+        if self._v_weighted:
+            for v in self.__vertexes:
                 data = {"name": v.get_label(), "label": v.get_label(), "weight": v.get_weight()}
-            else:
+                fstream.write(self._get_gdf_line(False, True, data))
+        else:
+            for v in self.__vertexes:
                 data = {"name": v.get_label(), "label": v.get_label()}
-            fstream.write(self.__get_gdf_line(False, True, data))
+                fstream.write(self._get_gdf_line(False, True, data))
         
-        fstream.write(self.__get_gdf_line(True, False))
+        fstream.write(self._get_gdf_line(True, False))
 
         data = None
-        for i in range(len(self.__matrix)):
-            for j, v in enumerate(self.__matrix[i]):
-                if v[0] is not None:
-                    if self._e_weighted:
+        if self._e_labeled:
+            for i in range(len(self.__matrix)):
+                for j, v in enumerate(self.__matrix[i]):
+                    if v[0] is not None:
                         data = {
                             "node1": self.__vertexes[i].get_label(),
                             "node2": self.__vertexes[j].get_label(),
                             "label": v[0], "weight": v[1]
                             }
-                    else:
-                        data = {
-                            "node1": self.__vertexes[i].get_label(),
-                            "node2": self.__vertexes[j].get_label(),
-                            "label": v[0]
-                            }
-                    fstream.write(self.__get_gdf_line(False, False, data))
-        
-    def __get_gdf_line(self, is_def: bool, is_vertex: bool, data: dict = None) -> str:
-        line = None
-
-        if is_def and is_vertex:
-            # nodedef>name VARCHAR,label VARCHAR,weight DOUBLE
-            line = f"nodedef>name VARCHAR,label VARCHAR{',weight DOUBLE' if self._v_weighted else ''}"
-        elif is_def:
-            # edgedef>node1 VARCHAR,node2 VARCHAR,label VARCHAR, weight DOUBLE
-            line = f"edgedef>node1 VARCHAR, node2 VARCHAR,label VARCHAR{',weight DOUBLE' if self._e_weighted else ''}"
-        elif is_vertex:
-            # s1,Site number 1, 100.5
-            line = f"{data['name']},{data['label']}{(',' + str(data['weight'])) if self._v_weighted else ''}"
+                        fstream.write(self._get_gdf_line(False, False, data))
         else:
-            # s1,s2,A,1.2341
-            line = f"{data['node1']},{data['node2']},{data['label']}{(',' + str(data['weight'])) if self._e_weighted else ''}"
-        line += '\n'
-        return line
+            for i in range(len(self.__matrix)):
+                for j, v in enumerate(self.__matrix[i]):
+                    if v[0] is not None:
+                        data = {
+                                "node1": self.__vertexes[i].get_label(),
+                                "node2": self.__vertexes[j].get_label(),
+                                "label": v[0]
+                            }
+                        fstream.write(self._get_gdf_line(False, False, data))
+        
+        fstream.flush()
+        fstream.close()
 
     def __create_vertex(self, n: int, labels: (tuple[str] | tuple[int] | None) = None,
                       weights: (tuple[float] | None) = None) -> list:
@@ -549,8 +540,7 @@ class AdjacencyMatrix(_Graph):
             Labels iterable. Must have length N if the attribute e_labeled is True; if False, the
             value must be None.
         weights: (tuple[float] | None)
-            Weights iterable. Must have length N if the attribute e_weighted is True; if False, the
-            value must be None.
+            Ignored.
         """
         if not self._e_labeled and labels is not None:
             raise ValueError("The attribute e_labeled is False, but the labels parameter is not None. With e_labeled False, labels must be None.") 
