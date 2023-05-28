@@ -1,0 +1,9 @@
+nodedef>name VARCHAR,label VARCHAR,weight DOUBLE
+a,a,1.5
+b,b,2
+c,c,3
+d,d,10
+e,e,5.3
+edgedef>node1 VARCHAR, node2 VARCHAR,label VARCHAR,weight DOUBLE
+a,b,1.0,2.5
+b,a,1.0,2.5

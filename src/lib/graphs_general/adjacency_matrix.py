@@ -475,6 +475,61 @@ class AdjacencyMatrix:
         fstream.flush()
         fstream.close()
 
+    def to_gdf(self, filename: str) -> None:
+        fstream = None
+        try:
+            fstream = open(filename, mode="x")
+        except FileExistsError:
+            raise FileExistsError(f"The file '{filename}' already exists and we will not override it. Provide a valid name to continue.")
+        
+        fstream.write(self.__get_gdf_line(True, True))
+
+        data = None
+        for v in self.__vertexes:
+            if self.__v_weighted:
+                data = {"name": v.get_label(), "label": v.get_label(), "weight": v.get_weight()}
+            else:
+                data = {"name": v.get_label(), "label": v.get_label()}
+            fstream.write(self.__get_gdf_line(False, True, data))
+        
+        fstream.write(self.__get_gdf_line(True, False))
+
+        data = None
+        for i in range(len(self.__matrix)):
+            for j, v in enumerate(self.__matrix[i]):
+                if v[0] is not None:
+                    if self.__e_weighted:
+                        data = {
+                            "node1": self.__vertexes[i].get_label(),
+                            "node2": self.__vertexes[j].get_label(),
+                            "label": v[0], "weight": v[1]
+                            }
+                    else:
+                        data = {
+                            "node1": self.__vertexes[i].get_label(),
+                            "node2": self.__vertexes[j].get_label(),
+                            "label": v[0]
+                            }
+                    fstream.write(self.__get_gdf_line(False, False, data))
+        
+    def __get_gdf_line(self, is_def: bool, is_vertex: bool, data: dict = None) -> str:
+        line = None
+
+        if is_def and is_vertex:
+            # nodedef>name VARCHAR,label VARCHAR,weight DOUBLE
+            line = f"nodedef>name VARCHAR,label VARCHAR{',weight DOUBLE' if self.__v_weighted else ''}"
+        elif is_def:
+            # edgedef>node1 VARCHAR,node2 VARCHAR,label VARCHAR, weight DOUBLE
+            line = f"edgedef>node1 VARCHAR, node2 VARCHAR,label VARCHAR{',weight DOUBLE' if self.__e_weighted else ''}"
+        elif is_vertex:
+            # s1,Site number 1, 100.5
+            line = f"{data['name']},{data['label']}{(',' + str(data['weight'])) if self.__v_weighted else ''}"
+        else:
+            # s1,s2,A,1.2341
+            line = f"{data['node1']},{data['node2']},{data['label']}{(',' + str(data['weight'])) if self.__e_weighted else ''}"
+        line += '\n'
+        return line
+
     def __create_vertex(self, n: int, labels: (tuple[str] | tuple[int] | None) = None,
                       weights: (tuple[float] | None) = None) -> list:
         """Create N vertexes with its labels and weights, if needed.

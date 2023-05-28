@@ -194,21 +194,22 @@ if __name__ == "__main__":
 # 
 # print(np_array)
 
-am = AdjacencyMatrix(n=5, labels=('a', 'b', 'c', 'd', 'e'), e_weighted=True)
+am = AdjacencyMatrix(n=5, labels=('a', 'b', 'c', 'd', 'e'), weights=(1.5, 2, 3, 10, 5.3), e_weighted=True)
 
 am.add_edge(('a',), ('b',), weight=(2.5,))
 
-am.to_csv("teste_am.csv")
+am.to_gdf("test_gdf_am.csv")
+am.to_csv("test_csv_am.csv")
 
-data, y = make_moons(500, shuffle=False, noise=0.1, random_state=None)
+#data, y = make_moons(500, shuffle=False, noise=0.1, random_state=None)
 
-ti = TransductiveInference(pd.DataFrame(data))
+#ti = TransductiveInference(pd.DataFrame(data))
 
-ti.fit_predict()
+#ti.fit_predict()
 # ti.plot()
 
 al = AdjacencyList(directed=False, e_weighted=True)
 
-al.add_edge((1, 4, 4), (3, 1, 5), weight=(1.5, 5.0, 2.0))
-al.to_csv("teste_al.csv")
-
+#al.add_edge((1, 4, 4), (3, 1, 5), weight=(1.5, 5.0, 2.0))
+#al.to_gdf("test_gdf_al.csv")
+#al.to_csv("test_csv_al.csv")
