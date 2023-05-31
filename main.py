@@ -6,6 +6,7 @@ from src.lib.transductive_inference import TransductiveInference
 import pandas as pd
 import numpy as np
 import math
+import random
 
 from sklearn.datasets import make_moons
 
@@ -159,27 +160,90 @@ if __name__ == "__main__":
                                "13 - Print graph info;\n0 - Quit.\n--> "))
             al.print()
 
-am = AdjacencyMatrix(n=5, labels=('a', 'b', 'c', 'd', 'e'), weights=(1.5, 2, 3, 10, 5.3), e_labeled=True, e_weighted=True)
+#am = AdjacencyMatrix(n=5, labels=('a', 'b', 'c', 'd', 'e'), weights=(1.5, 2, 3, 10, 5.3), e_labeled=True, e_weighted=True)
 
-am.add_edge(('a',), ('b',), label=('EdgeA',), weight=(2.5,))
-am.print()
-am.info()
+#am.add_edge(('a',), ('b',), label=('EdgeA',), weight=(2.5,))
+#am.print()
+#am.info()
 
-am.to_gdf("test_gdf_am.gdf")
-am.to_csv("test_csv_am.csv")
+#am.to_gdf("test_gdf_am.gdf")
+#am.to_csv("test_csv_am.csv")
 
-#data, y = make_moons(500, shuffle=False, noise=0.1, random_state=None)
+# data, y = make_moons(500, shuffle=False, noise=0.1, random_state=None)
+# 
+# ti = TransductiveInference(pd.DataFrame(data))
+# 
+# ti.fit_predict()
+# ti.plot()
 
-#ti = TransductiveInference(pd.DataFrame(data))
+#al = AdjacencyList(directed=False, e_weighted=True)
 
-#ti.fit_predict()
-#ti.plot()
+#al.add_edge((1, 4, 4), (3, 1, 5), weight=(1.5, 5.0, 2.0))
+#al.print()
+#print(al.info())
 
-al = AdjacencyList(directed=False, e_weighted=True)
+#al.to_gdf("test_gdf_al.gdf") # don't exist yet
+#al.to_csv("test_csv_al.csv")
 
-al.add_edge((1, 4, 4), (3, 1, 5), weight=(1.5, 5.0, 2.0))
-al.print()
-print(al.info())
+#borders = pd.read_csv("tests/StudyCase/contry_borders.csv")
 
-al.to_gdf("test_gdf_al.gdf") # don't exist yet
-al.to_csv("test_csv_al.csv")
+
+
+
+
+
+
+
+names = (
+    "bairros_sp", "bairros_fortaleza", "bairros_rj", 
+    "causa_afastamento_1", "causa_afastamento_2", "causa_afastamento_3", 
+    "Motivo_Desligamento", "cbo_ocupacao_2002", "cnae_20_classe", "cnae_95_classe", 
+    "distritos_sp", "vinculo_ativo_31_12", "faixa_etaria", "faixa_hora_contrat", 
+    "faixa_remun_dezem_sm", "faixa_remun_media_sm", "faixa_tempo_emprego", 
+    "escolaridade_apos_2005", "qtd_hora_contr", "idade", "ind_cei_vinculado", 
+    "ind_simples", "mes_admissao", "mes_desligamento", "mun_trab", "municipio", 
+    "nacionalidade", "natureza_juridica", "ind_portador_defic", "qtd_dias_afastamento", 
+    "raca_cor", "regioes_adm_df", "vl_remun_dezembro_nom", "vl_remun_dezembro_sm", 
+    "vl_remun_media_nom", "vl_remun_media_sm", "cnae_20_subclasse", "sexo_trabalhador", 
+    "tamanho_estabelecimento", "tempo_emprego", "tipo_admissao", "tipo_estab1", "tipo_estab2", 
+    "tipo_defic", "tipo_vinculo", "ibge_subsetor", "vl_rem_janeiro_cc", "vl_rem_fevereiro_cc", 
+    "vl_rem_marco_cc", "vl_rem_abril_cc", "vl_rem_maio_cc", "vl_rem_junho_cc", "vl_rem_julho_cc", 
+    "vl_rem_agosto_cc", "vl_rem_setembro_cc", "vl_rem_outubro_cc", "vl_rem_novembro_cc", 
+    "ano_chegada_brasil", "ind_trab_intermitente", "ind_trab_parcial"
+)
+
+fstream_read = open("tests/StudyCase/amostra_rais_vinc_pub_sp.csv", "r")
+fstream_write = open("tests/StudyCase/rais_random_sample.csv", "w")
+
+lines = fstream_read.readlines()
+
+fstream_write.write(f"{';'.join(names)}\n")
+
+fstream_write.writelines(random.sample(lines, k=int(len(lines) / 10)))
+
+fstream_read.close()
+
+fstream_write.flush()
+fstream_write.close()
+
+# handle data
+
+df = pd.read_csv("tests/StudyCase/rais_random_sample.csv", sep=";", encoding='ISO-8859-1')
+df_obj = df.select_dtypes(['object'])
+
+for col in df_obj.columns:
+    # float numbers with dot instead of comma
+    df[col] = df[col].str.replace(',', '.')
+    # remove carriage returns
+    df[col] = df[col].str.replace('\r', "")
+    # remove non-ASCII characters
+    df[col] = df[col].str.encode("ascii", "ignore").str.decode("ascii")
+    # trim columns
+    df[col] = df[col].str.strip()
+    # remove non-ASCII remains
+    df[col] = df[col].str.replace("{ class}", "")
+    df[col] = df[col].str.replace('{', "")
+
+df.to_csv("tests/StudyCase/rais_random_sample.csv", sep=";", columns=df.columns, index=False)
+
+
