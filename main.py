@@ -6,8 +6,10 @@ from src.lib.transductive_inference import TransductiveInference
 import pandas as pd
 import numpy as np
 import math
+import matplotlib.pyplot as plt
 import random
 
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.datasets import make_moons
 
 if __name__ == "__main__":
@@ -169,13 +171,22 @@ if __name__ == "__main__":
 #am.to_gdf("test_gdf_am.gdf")
 #am.to_csv("test_csv_am.csv")
 
-# data, y = make_moons(500, shuffle=False, noise=0.1, random_state=None)
-# 
-# ti = TransductiveInference(pd.DataFrame(data))
-# 
-# ti.fit_predict()
-# ti.plot()
+data, y = make_moons(500, shuffle=True, noise=0.1, random_state=None)
 
+ti = TransductiveInference(data, y)
+
+y_pred = ti.fit_predict()
+
+total = len(y)
+corrects = 0
+for i in range(total):
+    corrects += 1 if y_pred[i] == y[i] else 0
+
+print("corrects:", corrects)
+print("total:", total)
+print(f"score: {(corrects / total) * 100}%")
+
+ti.plot()
 #al = AdjacencyList(directed=False, e_weighted=True)
 
 #al.add_edge((1, 4, 4), (3, 1, 5), weight=(1.5, 5.0, 2.0))
@@ -190,60 +201,116 @@ if __name__ == "__main__":
 
 
 
+# sample definition
 
 
 
+# names = (
+#     "bairros_sp", "bairros_fortaleza", "bairros_rj", 
+#     "causa_afastamento_1", "causa_afastamento_2", "causa_afastamento_3", 
+#     "Motivo_Desligamento", "cbo_ocupacao_2002", "cnae_20_classe", "cnae_95_classe", 
+#     "distritos_sp", "vinculo_ativo_31_12", "faixa_etaria", "faixa_hora_contrat", 
+#     "faixa_remun_dezem_sm", "faixa_remun_media_sm", "faixa_tempo_emprego", 
+#     "escolaridade_apos_2005", "qtd_hora_contr", "idade", "ind_cei_vinculado", 
+#     "ind_simples", "mes_admissao", "mes_desligamento", "mun_trab", "municipio", 
+#     "nacionalidade", "natureza_juridica", "ind_portador_defic", "qtd_dias_afastamento", 
+#     "raca_cor", "regioes_adm_df", "vl_remun_dezembro_nom", "vl_remun_dezembro_sm", 
+#     "vl_remun_media_nom", "vl_remun_media_sm", "cnae_20_subclasse", "sexo_trabalhador", 
+#     "tamanho_estabelecimento", "tempo_emprego", "tipo_admissao", "tipo_estab1", "tipo_estab2", 
+#     "tipo_defic", "tipo_vinculo", "ibge_subsetor", "vl_rem_janeiro_cc", "vl_rem_fevereiro_cc", 
+#     "vl_rem_marco_cc", "vl_rem_abril_cc", "vl_rem_maio_cc", "vl_rem_junho_cc", "vl_rem_julho_cc", 
+#     "vl_rem_agosto_cc", "vl_rem_setembro_cc", "vl_rem_outubro_cc", "vl_rem_novembro_cc", 
+#     "ano_chegada_brasil", "ind_trab_intermitente", "ind_trab_parcial"
+# )
+# 
+# fstream_read = open("tests/StudyCase/amostra_rais_vinc_pub_sp.csv", "r")
+# fstream_write = open("tests/StudyCase/rais_random_sample.csv", "w")
+# 
+# lines = fstream_read.readlines()
+# 
+# fstream_write.write(f"{';'.join(names)}\n")
+# 
+# fstream_write.writelines(random.sample(lines, k=int(len(lines) / 10)))
+# 
+# fstream_read.close()
+# 
+# fstream_write.flush()
+# fstream_write.close()
+# 
+# # handle data
+# 
+# df = pd.read_csv("tests/StudyCase/rais_random_sample.csv", sep=";", encoding='ISO-8859-1')
+# df_obj = df.select_dtypes(['object'])
+# 
+# for col in df_obj.columns:
+#     # float numbers with dot instead of comma
+#     df[col] = df[col].str.replace(',', '.')
+#     # remove carriage returns
+#     df[col] = df[col].str.replace('\r', "")
+#     # remove non-ASCII characters
+#     df[col] = df[col].str.encode("ascii", "ignore").str.decode("ascii")
+#     # trim columns
+#     df[col] = df[col].str.strip()
+#     # remove non-ASCII remains
+#     df[col] = df[col].str.replace("{ class}", "")
+#     df[col] = df[col].str.replace('{', "")
+# 
+# df.to_csv("tests/StudyCase/rais_random_sample.csv", sep=";", columns=df.columns, index=False)
 
-names = (
-    "bairros_sp", "bairros_fortaleza", "bairros_rj", 
-    "causa_afastamento_1", "causa_afastamento_2", "causa_afastamento_3", 
-    "Motivo_Desligamento", "cbo_ocupacao_2002", "cnae_20_classe", "cnae_95_classe", 
-    "distritos_sp", "vinculo_ativo_31_12", "faixa_etaria", "faixa_hora_contrat", 
-    "faixa_remun_dezem_sm", "faixa_remun_media_sm", "faixa_tempo_emprego", 
-    "escolaridade_apos_2005", "qtd_hora_contr", "idade", "ind_cei_vinculado", 
-    "ind_simples", "mes_admissao", "mes_desligamento", "mun_trab", "municipio", 
-    "nacionalidade", "natureza_juridica", "ind_portador_defic", "qtd_dias_afastamento", 
-    "raca_cor", "regioes_adm_df", "vl_remun_dezembro_nom", "vl_remun_dezembro_sm", 
-    "vl_remun_media_nom", "vl_remun_media_sm", "cnae_20_subclasse", "sexo_trabalhador", 
-    "tamanho_estabelecimento", "tempo_emprego", "tipo_admissao", "tipo_estab1", "tipo_estab2", 
-    "tipo_defic", "tipo_vinculo", "ibge_subsetor", "vl_rem_janeiro_cc", "vl_rem_fevereiro_cc", 
-    "vl_rem_marco_cc", "vl_rem_abril_cc", "vl_rem_maio_cc", "vl_rem_junho_cc", "vl_rem_julho_cc", 
-    "vl_rem_agosto_cc", "vl_rem_setembro_cc", "vl_rem_outubro_cc", "vl_rem_novembro_cc", 
-    "ano_chegada_brasil", "ind_trab_intermitente", "ind_trab_parcial"
+cols_for_pred = (
+    # "bairros_sp", "mun_trab", "municipio", "distritos_sp", 
+    "cbo_ocupacao_2002", #"cnae_20_subclasse",# "cnae_20_classe",
+    # "tempo_emprego",
+    "escolaridade_apos_2005", "qtd_hora_contr",
+    "tipo_defic",
+    "raca_cor", "sexo_trabalhador", "idade", 
+    "tamanho_estabelecimento",
+    "faixa_remun_media_sm"
 )
 
-fstream_read = open("tests/StudyCase/amostra_rais_vinc_pub_sp.csv", "r")
-fstream_write = open("tests/StudyCase/rais_random_sample.csv", "w")
+df = pd.read_csv("tests/StudyCase/rais_random_sample.csv", sep=";")
 
-lines = fstream_read.readlines()
+cols_to_drop = []
+for col in df.columns:
+    if col not in cols_for_pred:
+        cols_to_drop.append(col)
 
-fstream_write.write(f"{';'.join(names)}\n")
+df = df.drop(cols_to_drop, axis=1)
+df["cbo_ocupacao_2002"] = df["cbo_ocupacao_2002"].fillna("0")
+df["cbo_ocupacao_2002"] = df["cbo_ocupacao_2002"].str.replace("-", "")
+df = df[df["cbo_ocupacao_2002"].str.startswith(("2",))]
 
-fstream_write.writelines(random.sample(lines, k=int(len(lines) / 10)))
+df = df.fillna(0)
 
-fstream_read.close()
-
-fstream_write.flush()
-fstream_write.close()
-
-# handle data
-
-df = pd.read_csv("tests/StudyCase/rais_random_sample.csv", sep=";", encoding='ISO-8859-1')
-df_obj = df.select_dtypes(['object'])
-
-for col in df_obj.columns:
-    # float numbers with dot instead of comma
-    df[col] = df[col].str.replace(',', '.')
-    # remove carriage returns
-    df[col] = df[col].str.replace('\r', "")
-    # remove non-ASCII characters
-    df[col] = df[col].str.encode("ascii", "ignore").str.decode("ascii")
-    # trim columns
-    df[col] = df[col].str.strip()
-    # remove non-ASCII remains
-    df[col] = df[col].str.replace("{ class}", "")
-    df[col] = df[col].str.replace('{', "")
-
-df.to_csv("tests/StudyCase/rais_random_sample.csv", sep=";", columns=df.columns, index=False)
+#df = df.drop([i for i in df.index[int(len(df.index) / 10) : len(df.index)]])
+df = df[df["faixa_remun_media_sm"] != 99]
 
 
+for col in df.select_dtypes(['object']).columns:
+    # df[col] = df[col].str.replace('-', "")
+    df[col] = pd.to_numeric(df[col])
+
+ti = TransductiveInference(df, df["faixa_remun_media_sm"], y_name="faixa_remun_media_sm")
+
+y_pred = ti.fit_predict()
+y_true = [i for i in df["faixa_remun_media_sm"].values]
+
+
+print("Y_TRUE:", y_true)
+print("\n\n\n\n\n\n")
+print("Y_PRED:", y_pred)
+
+total = len(df)
+corrects = 0
+for i in range(total):
+    corrects += 1 if y_pred[i] == y_true[i] else 0
+
+print("corrects:", corrects)
+print("total:", total)
+print(f"score: {(corrects / total) * 100}%")
+
+cm = confusion_matrix(y_true, y_pred, labels=[i for i in range(0, 12)])
+disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=[i for i in range(0, 12)])
+
+disp.plot()
+plt.show()
